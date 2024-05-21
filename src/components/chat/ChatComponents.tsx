@@ -42,6 +42,10 @@ export const ChatMessageInput = styled.input`
     }
 `;
 
+export const ChatTimer = styled.span<{ $color: string }>`
+    color: ${(props) => props.$color};
+`;
+
 export const SplitOrStealIcon = styled.span<{ $color: string }>`
     color: ${(props) => props.$color};
     cursor: pointer;

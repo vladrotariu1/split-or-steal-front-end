@@ -12,6 +12,7 @@ import { PaymentMethods } from './features/payment-methods/PaymentMethods.tsx';
 import { LOCAL_STORAGE_ACCESS_TOKEN_KEY } from './utils/Variables.ts';
 import { useLoginWithTokenMutation } from './store/api/authApi.ts';
 import { useEffect } from 'react';
+import { NewGamePage } from './features/layout/NewGamePage.tsx';
 
 function App() {
     const { accessToken, loggedIn } = useSelector(
@@ -51,6 +52,7 @@ function App() {
                                 )
                             }
                         />
+                        <Route path="new-game" element={<NewGamePage />} />
                         <Route
                             path="profile"
                             element={

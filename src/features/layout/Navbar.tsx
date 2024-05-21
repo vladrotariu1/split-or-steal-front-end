@@ -28,6 +28,10 @@ export const Navbar = () => {
         navigate('/');
     };
 
+    const handleClickNewGame = () => {
+        navigate('/new-game');
+    };
+
     return (
         <NavbarWrapper>
             <NavbarRightContainer>
@@ -36,7 +40,9 @@ export const Navbar = () => {
                 </NavbarRightContainerElement>
                 {loggedIn ? (
                     <>
-                        <NavbarRightContainerElement>
+                        <NavbarRightContainerElement
+                            onClick={handleClickNewGame}
+                        >
                             New Game
                         </NavbarRightContainerElement>
                         <NavbarRightContainerElement>
