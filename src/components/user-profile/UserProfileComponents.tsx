@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { TEXT_COLOR_WHITE } from '../../utils/Styles.ts';
+import { TEXT_COLOR_WHITE } from '../../config/Styles.ts';
 
 export const UserProfileEmail = styled.h1`
     color: ${TEXT_COLOR_WHITE};

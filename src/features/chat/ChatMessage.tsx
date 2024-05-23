@@ -1,5 +1,5 @@
 import { ProfilePicture } from '../../components/shared/ProfilePicture.tsx';
-import { DEFAULT_USER_IMAGE_URL } from '../../utils/Variables.ts';
+import { DEFAULT_USER_IMAGE_URL } from '../../config/Variables.ts';
 import {
     ChatMessageText,
     ChatMessageUsername,

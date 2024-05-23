@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { TEXT_COLOR_GREEN } from '../../utils/Styles.ts';
+import { TEXT_COLOR_GREEN } from '../../config/Styles.ts';
 
 export const ProfilePicture = styled.div<{
     $changePhotoActivated: boolean;

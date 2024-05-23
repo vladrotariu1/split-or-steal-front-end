@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { RootState } from '../configureStore.ts';
-import { getCurrentServiceEndpoint } from '../../utils/ServiceEndpointsMap.ts';
+import { getCurrentServiceEndpoint } from '../../config/ServiceEndpointsMap.ts';
 
 export const baseApi = (reducerPath: string) =>
     createApi({

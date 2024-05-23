@@ -1,6 +1,6 @@
 import { ChatMessageListWrapper } from '../../components/chat/ChatWrappers.tsx';
 import { ChatMessage } from './ChatMessage.tsx';
-import { CHAT_USERNAME_RED, TEXT_COLOR_GREEN } from '../../utils/Styles.ts';
+import { CHAT_USERNAME_RED, TEXT_COLOR_GREEN } from '../../config/Styles.ts';
 import { Message } from '../../models/Message.ts';
 
 interface ChatMessageListProps {

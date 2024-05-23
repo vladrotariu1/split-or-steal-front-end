@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { MAIN_COLOR_BLUE_MARINE } from '../../utils/Styles.ts';
+import { MAIN_COLOR_BLUE_MARINE } from '../../config/Styles.ts';
 
 export const UserProfileWrapper = styled.div`
     align-items: center;

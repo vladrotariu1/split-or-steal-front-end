@@ -14,7 +14,7 @@ import { activateInfoPopup } from '../../store/slices/infoPopup.slice.ts';
 import { useDispatch } from 'react-redux';
 import { PopupTypes } from '../../models/enums/PopupTypes.ts';
 import { updateCurrentUser } from '../../store/slices/currentUser.slice.ts';
-import { TEXT_COLOR_GREEN, TEXT_COLOR_SILVER } from '../../utils/Styles.ts';
+import { TEXT_COLOR_GREEN, TEXT_COLOR_SILVER } from '../../config/Styles.ts';
 import { useNavigate } from 'react-router-dom';
 
 export const LoginForm = () => {

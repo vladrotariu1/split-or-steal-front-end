@@ -2,14 +2,14 @@ import {
     TEXT_COLOR_GREEN,
     TEXT_COLOR_RED,
     TEXT_COLOR_YELLOW,
-} from '../../utils/Styles.ts';
+} from '../../config/Styles.ts';
 import {
     ProfilePicture,
     ProfilePictureInput,
 } from '../../components/shared/ProfilePicture.tsx';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore.ts';
-import { DEFAULT_USER_IMAGE_URL } from '../../utils/Variables.ts';
+import { DEFAULT_USER_IMAGE_URL } from '../../config/Variables.ts';
 import {
     UserProfileStatsWrapper,
     UserProfileStatWrapper,

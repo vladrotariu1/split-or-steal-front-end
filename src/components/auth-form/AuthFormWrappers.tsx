@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import {
     MAIN_COLOR_BLUE_MARINE,
     TEXT_COLOR_WHITE,
-} from '../../utils/Styles.ts';
+} from '../../config/Styles.ts';
 
 export const AuthFormWrapper = styled.div<{ $hangingText }>`
     background-color: ${MAIN_COLOR_BLUE_MARINE};

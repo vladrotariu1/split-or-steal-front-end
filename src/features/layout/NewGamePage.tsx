@@ -1,15 +1,27 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore.ts';
 import {
     ChatTimer,
+    OpponentName,
+    PlayerChoice,
     StartNewGameButton,
 } from '../../components/chat/ChatComponents.tsx';
-import { ChatWrapper } from '../../components/chat/ChatWrappers.tsx';
+import {
+    ChatMetadataWrapper,
+    ChatWrapper,
+    PlayerChoiceWrapper,
+    PlayingAgainstWrapper,
+    ResultsWrapper,
+} from '../../components/chat/ChatWrappers.tsx';
 import { Message } from '../../models/Message.ts';
-import { TEXT_COLOR_GREEN, TEXT_COLOR_YELLOW } from '../../utils/Styles.ts';
+import {
+    CHAT_USERNAME_RED,
+    TEXT_COLOR_GREEN,
+    TEXT_COLOR_YELLOW,
+} from '../../config/Styles.ts';
 import { io } from 'socket.io-client';
-import { getCurrentServiceEndpoint } from '../../utils/ServiceEndpointsMap.ts';
+import { getCurrentServiceEndpoint } from '../../config/ServiceEndpointsMap.ts';
 import { PlayerStates } from '../../models/enums/PlayerStates.ts';
 import { Choices } from '../../models/enums/Choices.ts';
 import { PlayersChoicesResponse } from '../../models/response/PlayersChoicesResponse.ts';
@@ -24,14 +36,28 @@ import {
     TopLeftPositionedWrapper,
     TopRightPositionedWrapper,
 } from '../../components/shared/Wrappers.tsx';
+import { StartGameResponse } from '../../models/response/StartGameResponse.ts';
+import { formatTimer } from '../../utils/Format.ts';
+import { VerticalSeparator } from '../../components/shared/Separators.tsx';
+import {
+    computeOutcome,
+    getChoiceColor,
+    getOutcomeColor,
+} from '../../utils/Utils.ts';
+import { GameOutcomes } from '../../models/enums/GameOutcomes.ts';
 
 export const NewGamePage = () => {
     const [message, setMessage] = useState('');
     const [messagesList, setMessagesList] = useState([] as Message[]);
-    const [playerState, setPlayerState] = useState(
-        PlayerStates.DISPLAY_RESULTS,
-    );
+    const [playerState, setPlayerState] = useState(PlayerStates.NOT_IN_GAME);
     const [choice, setChoice] = useState<Choices>(null);
+    const [opponentChoice, setOpponentChoice] = useState<Choices>(null);
+    const [timerSeconds, setTimerSeconds] = useState(0);
+    const [wrapperBoxShadow, setWrapperBoxShadow] = useState<string>(null);
+    const [gameOutcome, setGameOutcome] = useState<GameOutcomes>(null);
+
+    // eslint-disable-next-line no-undef
+    const intervalRef = useRef<NodeJS.Timeout>(null);
 
     const { accessToken, loggedIn, userId } = useSelector(
         (state: RootState) => state.currentUser,
@@ -50,27 +76,65 @@ export const NewGamePage = () => {
         [accessToken, serviceEndpoint],
     );
 
-    function onSocketConnect() {
+    const onSocketConnect = () => {
         console.log('connected');
-    }
+    };
 
-    function onSocketDisconnect() {
+    const onSocketDisconnect = () => {
         console.log('disconnected');
-    }
+    };
 
-    function onSocketMessage(message: Message) {
+    const onSocketMessage = (message: Message) => {
         console.log('new-message');
         setMessagesList((msgList) => [...msgList, message]);
-    }
+    };
 
-    function onSocketStartGame() {
+    const onSocketStartGame = (startGameResponse: StartGameResponse) => {
+        const chatTimerDuration = Math.floor(
+            startGameResponse.chatDuration / 1000,
+        );
+
+        setWrapperBoxShadow(null);
+        setTimerSeconds(() => chatTimerDuration);
         setPlayerState(PlayerStates.IN_GAME);
-    }
 
-    function onSocketEndGame(playerChoices: PlayersChoicesResponse) {
+        intervalRef.current = setInterval(() => {
+            setTimerSeconds((seconds) => (seconds - 1 >= 0 ? seconds - 1 : 0));
+        }, 1000);
+    };
+
+    const onSocketEndGame = (playerChoices: PlayersChoicesResponse) => {
         console.log('player-choices', playerChoices);
+        let outcome;
+
+        if (playerChoices.player1.id === userId) {
+            setChoice(playerChoices.player1.choice);
+            setOpponentChoice(playerChoices.player2.choice);
+            outcome = computeOutcome(
+                playerChoices.player1.choice,
+                playerChoices.player2.choice,
+            );
+        } else {
+            setChoice(playerChoices.player2.choice);
+            setOpponentChoice(playerChoices.player1.choice);
+            outcome = computeOutcome(
+                playerChoices.player2.choice,
+                playerChoices.player1.choice,
+            );
+        }
+
+        clearInterval(intervalRef.current);
+
+        setWrapperBoxShadow(null);
         setPlayerState(PlayerStates.DISPLAY_RESULTS);
-    }
+        setGameOutcome(outcome);
+
+        const timeout = setTimeout(() => {
+            clearInterval(timeout);
+            setWrapperBoxShadow(getOutcomeColor(outcome));
+            console.log(gameOutcome);
+        }, 1000);
+    };
 
     const clearSocket = () => {
         socket.removeListener();
@@ -80,14 +144,18 @@ export const NewGamePage = () => {
     const handleOnBackArrow = () => {
         clearSocket();
         setChoice(null);
+        setOpponentChoice(null);
         setMessage('');
         setMessagesList([]);
         setPlayerState(PlayerStates.NOT_IN_GAME);
+        setGameOutcome(null);
+        setWrapperBoxShadow(null);
     };
 
     const handleOnClose = () => {
         clearSocket();
         setPlayerState(PlayerStates.NOT_IN_GAME);
+        setWrapperBoxShadow(null);
     };
 
     const handleOnInputChange = (
@@ -109,15 +177,18 @@ export const NewGamePage = () => {
     const handleOnChooseSplit = () => {
         socket.emit('split-or-steal-decision', Choices.SPLIT);
         setChoice(Choices.SPLIT);
+        setWrapperBoxShadow(TEXT_COLOR_YELLOW);
     };
 
     const handleOnChooseSteal = () => {
         socket.emit('split-or-steal-decision', Choices.STEAL);
         setChoice(Choices.STEAL);
+        setWrapperBoxShadow(TEXT_COLOR_GREEN);
     };
 
     const handleSearchNewGameClick = () => {
         setPlayerState(PlayerStates.SEARCHING_FOR_GAME);
+        setWrapperBoxShadow(TEXT_COLOR_GREEN);
 
         socket.connect();
 
@@ -129,13 +200,6 @@ export const NewGamePage = () => {
     };
 
     const textPlaceholder = `Type your message${!loggedIn ? ' (please login 🔒)' : ' ✏️'}`;
-    let wrapperBoxShadow =
-        choice &&
-        (choice === Choices.STEAL ? TEXT_COLOR_GREEN : TEXT_COLOR_YELLOW);
-
-    if (playerState === PlayerStates.SEARCHING_FOR_GAME) {
-        wrapperBoxShadow = TEXT_COLOR_GREEN;
-    }
 
     return (
         <ChatWrapper
@@ -159,6 +223,21 @@ export const NewGamePage = () => {
             )}
             {playerState === PlayerStates.IN_GAME && (
                 <>
+                    <TopRightPositionedWrapper>
+                        <ChatTimer $color={TEXT_COLOR_GREEN}>
+                            {formatTimer(timerSeconds)}
+                        </ChatTimer>
+                    </TopRightPositionedWrapper>
+
+                    <ChatMetadataWrapper>
+                        <PlayingAgainstWrapper>
+                            Playing with
+                        </PlayingAgainstWrapper>
+                        <OpponentName $color={CHAT_USERNAME_RED}>
+                            somee@name123467
+                        </OpponentName>
+                    </ChatMetadataWrapper>
+
                     <ChatMessageList
                         currentUserId={userId}
                         messagesList={messagesList}
@@ -180,20 +259,30 @@ export const NewGamePage = () => {
             )}
             {playerState === PlayerStates.DISPLAY_RESULTS && (
                 <>
-                    <TopRightPositionedWrapper>
-                        <ChatTimer $color={TEXT_COLOR_GREEN}>02:04</ChatTimer>
-                    </TopRightPositionedWrapper>
-
                     <TopLeftPositionedWrapper>
                         <BackArrow
                             onClick={handleOnBackArrow}
                             $dimension={24}
                         />
                     </TopLeftPositionedWrapper>
-                    <ChatMessageList
-                        currentUserId={userId}
-                        messagesList={messagesList}
-                    />
+
+                    <ResultsWrapper>
+                        <PlayerChoiceWrapper>
+                            You chose:
+                            <PlayerChoice $color={getChoiceColor(choice)}>
+                                {choice}
+                            </PlayerChoice>
+                        </PlayerChoiceWrapper>
+                        <VerticalSeparator />
+                        <PlayerChoiceWrapper>
+                            Opponent chose:
+                            <PlayerChoice
+                                $color={getChoiceColor(opponentChoice)}
+                            >
+                                {opponentChoice}
+                            </PlayerChoice>
+                        </PlayerChoiceWrapper>
+                    </ResultsWrapper>
                 </>
             )}
         </ChatWrapper>

@@ -5,3 +5,6 @@ export interface UserDetailsResponse {
     userName: string;
     userPhotoUrl: string;
 }
+
+export interface ChatUserDetailsResponse
+    extends Pick<UserDetailsResponse, 'userId' | 'userName' | 'userPhotoUrl'> {}

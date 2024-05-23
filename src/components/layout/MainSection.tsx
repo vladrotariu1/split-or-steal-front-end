@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { MAIN_COLOR_GREY } from '../../utils/Styles.ts';
+import { MAIN_COLOR_GREY } from '../../config/Styles.ts';
 
 export const MainSection = styled.section`
     align-items: center;

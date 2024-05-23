@@ -3,7 +3,7 @@ import {
     MAIN_COLOR_BLUE_MARINE,
     TEXT_COLOR_GREEN,
     TEXT_COLOR_SILVER,
-} from '../../utils/Styles.ts';
+} from '../../config/Styles.ts';
 
 export const ChatMessageText = styled.p`
     color: ${TEXT_COLOR_SILVER};
@@ -44,6 +44,19 @@ export const ChatMessageInput = styled.input`
 
 export const ChatTimer = styled.span<{ $color: string }>`
     color: ${(props) => props.$color};
+`;
+
+export const OpponentName = styled.span<{ $color: string }>`
+    color: ${(props) => props.$color};
+    display: block;
+    font-size: 16px;
+    margin-top: 8px;
+`;
+
+export const PlayerChoice = styled.span<{ $color: string }>`
+    color: ${(props) => props.$color};
+    display: block;
+    font-size: 48px;
 `;
 
 export const SplitOrStealIcon = styled.span<{ $color: string }>`

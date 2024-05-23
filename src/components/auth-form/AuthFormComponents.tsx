@@ -3,7 +3,7 @@ import {
     MAIN_COLOR_GREY,
     TEXT_COLOR_GREEN,
     TEXT_COLOR_WHITE,
-} from '../../utils/Styles.ts';
+} from '../../config/Styles.ts';
 
 export const AuthFormInput = styled.input`
     background-color: ${MAIN_COLOR_GREY};

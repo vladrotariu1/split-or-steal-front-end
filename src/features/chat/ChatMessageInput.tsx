@@ -6,7 +6,7 @@ import {
     ChatMessageInput as ChatMessageInputComponent,
     SplitOrStealIcon,
 } from '../../components/chat/ChatComponents.tsx';
-import { TEXT_COLOR_GREEN, TEXT_COLOR_YELLOW } from '../../utils/Styles.ts';
+import { TEXT_COLOR_GREEN, TEXT_COLOR_YELLOW } from '../../config/Styles.ts';
 import React from 'react';
 
 interface ChatMessageInputProps {

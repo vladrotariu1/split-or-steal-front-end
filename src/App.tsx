@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from './store/configureStore.ts';
 import { CreateUserForm } from './features/authentication/CreateUserForm.tsx';
 import { PaymentMethods } from './features/payment-methods/PaymentMethods.tsx';
-import { LOCAL_STORAGE_ACCESS_TOKEN_KEY } from './utils/Variables.ts';
+import { LOCAL_STORAGE_ACCESS_TOKEN_KEY } from './config/Variables.ts';
 import { useLoginWithTokenMutation } from './store/api/authApi.ts';
 import { useEffect } from 'react';
 import { NewGamePage } from './features/layout/NewGamePage.tsx';

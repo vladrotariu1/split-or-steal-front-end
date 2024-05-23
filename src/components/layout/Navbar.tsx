@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import {
     MAIN_COLOR_BLUE_MARINE,
     TEXT_COLOR_SILVER,
-} from '../../utils/Styles.ts';
+} from '../../config/Styles.ts';
 
 export const NavbarWrapper = styled.nav`
     background-color: ${MAIN_COLOR_BLUE_MARINE};

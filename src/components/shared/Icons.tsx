@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { TEXT_COLOR_GREEN, TEXT_COLOR_SILVER } from '../../utils/Styles.ts';
+import { TEXT_COLOR_GREEN, TEXT_COLOR_SILVER } from '../../config/Styles.ts';
 
 export const BackArrow = styled.span<{ $dimension }>`
     height: ${(props) => `${props.$dimension}px`};
