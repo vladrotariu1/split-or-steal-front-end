@@ -13,19 +13,26 @@ const injectedRtkApi = authBaseApi.injectEndpoints({
                 body: userLoginDto,
             }),
         }),
-        loginWithToken: builder.mutation<UserDetailsResponse, string>({
-            query: (authToken) => ({
+        loginWithToken: builder.mutation<
+            UserDetailsResponse,
+            { authToken: string; errorCallback: () => void }
+        >({
+            query: ({ authToken }) => ({
                 url: 'auth/login-with-token',
                 method: 'POST',
                 body: { authToken },
             }),
-            async onQueryStarted(_, { dispatch, queryFulfilled }) {
+            async onQueryStarted(
+                { errorCallback },
+                { dispatch, queryFulfilled },
+            ) {
                 try {
                     const { data: userDetails } = await queryFulfilled;
                     console.log('setting current user');
                     dispatch(updateCurrentUser(userDetails));
                 } catch (e) {
                     console.log(e);
+                    errorCallback();
                 }
             },
         }),
