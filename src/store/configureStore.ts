@@ -22,6 +22,7 @@ const store = configureStore({
         [paymentMethodsApi.reducerPath]: paymentMethodsApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
+        // @ts-ignore
         getDefaultMiddleware()
             .concat(authApi.middleware)
             .concat(userProfileApi.middleware)
