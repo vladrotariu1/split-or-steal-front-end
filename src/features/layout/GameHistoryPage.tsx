@@ -43,6 +43,11 @@ const GameHistoryPlayedDate = styled.p<{ $color: string }>`
     font-size: 16px;
 `;
 
+const GameHistoryNoGamesPlayed = styled.p`
+    color: ${TEXT_COLOR_WHITE};
+    font-size: 16px;
+`;
+
 export const GameHistoryPage = () => {
     const { loggedIn } = useSelector((state: RootState) => state.currentUser);
     const { data } = useGetGameHistoryQuery(null, {
@@ -58,6 +63,11 @@ export const GameHistoryPage = () => {
     return (
         data && (
             <GameHistoryWrapper>
+                {data.length === 0 && (
+                    <GameHistoryNoGamesPlayed>
+                        No games played
+                    </GameHistoryNoGamesPlayed>
+                )}
                 {data.map((game) => {
                     const outcome = computeOutcome(
                         game.currentPlayerChoice,
