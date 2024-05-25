@@ -26,4 +26,5 @@ export const NavbarRightContainerElement = styled.li`
     cursor: pointer;
     list-style: none;
     margin: 0 20px;
+    position: relative;
 `;

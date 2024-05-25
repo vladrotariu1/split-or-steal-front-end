@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore.ts';
 import {
     ChatTimer,
@@ -45,6 +45,7 @@ import {
     getOutcomeColor,
 } from '../../utils/Utils.ts';
 import { GameOutcomes } from '../../models/enums/GameOutcomes.ts';
+import { updateUserBalance } from '../../store/slices/currentUser.slice.ts';
 
 export const NewGamePage = () => {
     const [message, setMessage] = useState('');
@@ -55,6 +56,7 @@ export const NewGamePage = () => {
     const [timerSeconds, setTimerSeconds] = useState(0);
     const [wrapperBoxShadow, setWrapperBoxShadow] = useState<string>(null);
     const [gameOutcome, setGameOutcome] = useState<GameOutcomes>(null);
+    const [opponentName, setOpponentName] = useState<string>(null);
 
     // eslint-disable-next-line no-undef
     const intervalRef = useRef<NodeJS.Timeout>(null);
@@ -62,6 +64,8 @@ export const NewGamePage = () => {
     const { accessToken, loggedIn, userId } = useSelector(
         (state: RootState) => state.currentUser,
     );
+
+    const dispatch = useDispatch();
 
     const serviceEndpoint = getCurrentServiceEndpoint();
 
@@ -94,6 +98,12 @@ export const NewGamePage = () => {
             startGameResponse.chatDuration / 1000,
         );
 
+        const opponentName =
+            startGameResponse.usersDetails[0].userId === userId
+                ? startGameResponse.usersDetails[1].userName
+                : startGameResponse.usersDetails[0].userName;
+
+        setOpponentName(opponentName);
         setWrapperBoxShadow(null);
         setTimerSeconds(() => chatTimerDuration);
         setPlayerState(PlayerStates.IN_GAME);
@@ -114,6 +124,7 @@ export const NewGamePage = () => {
                 playerChoices.player1.choice,
                 playerChoices.player2.choice,
             );
+            dispatch(updateUserBalance(playerChoices.player1.resultBalance));
         } else {
             setChoice(playerChoices.player2.choice);
             setOpponentChoice(playerChoices.player1.choice);
@@ -121,6 +132,7 @@ export const NewGamePage = () => {
                 playerChoices.player2.choice,
                 playerChoices.player1.choice,
             );
+            dispatch(updateUserBalance(playerChoices.player2.resultBalance));
         }
 
         clearInterval(intervalRef.current);
@@ -143,6 +155,7 @@ export const NewGamePage = () => {
 
     const handleOnBackArrow = () => {
         clearSocket();
+        setOpponentName(null);
         setChoice(null);
         setOpponentChoice(null);
         setMessage('');
@@ -234,7 +247,7 @@ export const NewGamePage = () => {
                             Playing with
                         </PlayingAgainstWrapper>
                         <OpponentName $color={CHAT_USERNAME_RED}>
-                            somee@name123467
+                            {opponentName}
                         </OpponentName>
                     </ChatMetadataWrapper>
 

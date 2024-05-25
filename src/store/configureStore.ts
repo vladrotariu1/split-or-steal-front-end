@@ -7,21 +7,15 @@ import {
 import { infoPopupReducer, InfoPopupState } from './slices/infoPopup.slice.ts';
 import { userProfileApi } from './api/userProfileApi.ts';
 import { paymentMethodsApi } from './api/paymentMethodsApi.ts';
-import {
-    firebaseConfigReducer,
-    FirebaseConfigState,
-} from './slices/firebaseConfig.slice.ts';
 
 export interface RootState {
     currentUser: CurrentUserState;
-    firebaseConfig: FirebaseConfigState;
     infoPopup: InfoPopupState;
 }
 
 const store = configureStore({
     reducer: {
         currentUser: currentUserReducer,
-        firebaseConfig: firebaseConfigReducer,
         infoPopup: infoPopupReducer,
         [authApi.reducerPath]: authApi.reducer,
         [userProfileApi.reducerPath]: userProfileApi.reducer,

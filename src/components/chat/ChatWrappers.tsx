@@ -14,7 +14,7 @@ export const ChatMessageListWrapper = styled.ul`
 `;
 
 export const ChatWrapper = styled.div<{
-    $boxShadow: string | undefined;
+    $boxShadow?: string | undefined;
     $startAnimation: boolean;
 }>`
     animation: ${(props) => props.$startAnimation && 'glowing 2s infinite'};

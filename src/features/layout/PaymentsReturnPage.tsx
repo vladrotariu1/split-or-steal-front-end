@@ -1,10 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { getCurrentServiceEndpoint } from '../../config/ServiceEndpointsMap.ts';
+import styled from 'styled-components';
+import { TEXT_COLOR_GREEN, TEXT_COLOR_WHITE } from '../../config/Styles.ts';
+
+const PaymentSuccessfulWrapper = styled.div``;
+
+const PaymentRechargeMessage = styled.p`
+    color: ${TEXT_COLOR_GREEN};
+    font-size: 24px;
+`;
+
+const PaymentSuccessfulMessage = styled.h1`
+    color: ${TEXT_COLOR_WHITE};
+    font-size: 48px;
+`;
 
 export const PaymentsReturnPage = () => {
     const [status, setStatus] = useState(null);
-    const [customerEmail, setCustomerEmail] = useState('');
+    const [paymentAmount, setPaymentAmount] = useState(0);
 
     useEffect(() => {
         const queryString = window.location.search;
@@ -17,24 +31,24 @@ export const PaymentsReturnPage = () => {
             .then((res) => res.json())
             .then((data) => {
                 setStatus(data.status);
-                setCustomerEmail(data.customer_email);
+                setPaymentAmount(data.paymentAmount);
             });
     }, []);
 
     if (status === 'open') {
-        return <Navigate to="/" />;
+        return <Navigate to="/add-credit" />;
     }
 
     if (status === 'complete') {
         return (
-            <section id="success">
-                <p>
-                    We appreciate your business! A confirmation email will be
-                    sent to {customerEmail}. If you have any questions, please
-                    email{' '}
-                    <a href="mailto:orders@example.com">orders@example.com</a>.
-                </p>
-            </section>
+            <PaymentSuccessfulWrapper>
+                <PaymentSuccessfulMessage>
+                    Your payment was successful!
+                </PaymentSuccessfulMessage>
+                <PaymentRechargeMessage>
+                    {paymentAmount}$ have been added to your credit
+                </PaymentRechargeMessage>
+            </PaymentSuccessfulWrapper>
         );
     }
 

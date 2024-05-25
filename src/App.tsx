@@ -14,6 +14,9 @@ import { useLoginWithTokenMutation } from './store/api/authApi.ts';
 import { useEffect } from 'react';
 import { NewGamePage } from './features/layout/NewGamePage.tsx';
 import { PaymentsReturnPage } from './features/layout/PaymentsReturnPage.tsx';
+import { AddCreditPage } from './features/layout/AddCreditPage.tsx';
+import { GameHistoryPage } from './features/layout/GameHistoryPage.tsx';
+import { GameDetailsPage } from './features/layout/GameDetailsPage.tsx';
 
 function App() {
     const { accessToken, loggedIn } = useSelector(
@@ -23,6 +26,7 @@ function App() {
     const navigate = useNavigate();
 
     if (accessToken) {
+        console.log('setting-access-token');
         localStorage.setItem(LOCAL_STORAGE_ACCESS_TOKEN_KEY, accessToken);
     }
 
@@ -34,8 +38,8 @@ function App() {
         );
 
         const onLoginError = () => {
+            window.localStorage.removeItem(LOCAL_STORAGE_ACCESS_TOKEN_KEY);
             navigate('/login');
-            localStorage.removeItem(LOCAL_STORAGE_ACCESS_TOKEN_KEY);
         };
 
         if (cachedAccessToken && !loggedIn) {
@@ -59,7 +63,16 @@ function App() {
                             !loggedIn ? <CreateUserForm /> : <Navigate to="/" />
                         }
                     />
-                    <Route path="new-game" element={<NewGamePage />} />
+                    <Route
+                        path="new-game"
+                        element={
+                            loggedIn ? (
+                                <NewGamePage />
+                            ) : (
+                                <Navigate to="/login" />
+                            )
+                        }
+                    />
                     <Route
                         path="profile"
                         element={
@@ -71,6 +84,11 @@ function App() {
                         }
                     />
                     <Route
+                        path="game-details/:id"
+                        element={<GameDetailsPage />}
+                    />
+                    <Route path="game-history" element={<GameHistoryPage />} />
+                    <Route
                         path="payment-methods"
                         element={
                             loggedIn ? (
@@ -81,8 +99,18 @@ function App() {
                         }
                     />
                     <Route
+                        path="add-credit"
+                        element={
+                            loggedIn ? (
+                                <AddCreditPage />
+                            ) : (
+                                <Navigate to="/login" />
+                            )
+                        }
+                    />
+                    <Route
                         path="payments-return"
-                        element={<PaymentsReturnPage />}
+                        element={loggedIn && <PaymentsReturnPage />}
                     />
                     <Route path="not-found" element={<div>Error</div>} />
                     <Route path="*" element={<Navigate to="/not-found" />} />

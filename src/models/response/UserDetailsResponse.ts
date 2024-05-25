@@ -1,5 +1,6 @@
 export interface UserDetailsResponse {
     accessToken: string;
+    balance: number;
     email: string;
     userId: string;
     userName: string;

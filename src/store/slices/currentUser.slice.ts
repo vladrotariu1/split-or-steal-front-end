@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 export interface CurrentUserState {
     accessToken: string;
+    balance: number;
     email: string;
     loggedIn: boolean;
     userId: string;
@@ -11,6 +12,7 @@ export interface CurrentUserState {
 
 const initialState: CurrentUserState = {
     accessToken: '',
+    balance: null,
     email: '',
     loggedIn: false,
     userId: '',
@@ -22,6 +24,11 @@ const currentUserSlice = createSlice({
     name: 'current-user',
     initialState,
     reducers: {
+        resetCurrentUser() {
+            return {
+                ...initialState,
+            };
+        },
         updateCurrentUser(
             state,
             action: { payload: Partial<CurrentUserState>; type: any },
@@ -32,8 +39,15 @@ const currentUserSlice = createSlice({
                 loggedIn: true,
             };
         },
+        updateUserBalance(state, action: { payload: number; type: any }) {
+            return {
+                ...state,
+                balance: state.balance + action.payload,
+            };
+        },
     },
 });
 
-export const { updateCurrentUser } = currentUserSlice.actions;
+export const { resetCurrentUser, updateCurrentUser, updateUserBalance } =
+    currentUserSlice.actions;
 export const { reducer: currentUserReducer } = currentUserSlice;

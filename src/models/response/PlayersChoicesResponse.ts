@@ -8,4 +8,5 @@ export interface PlayersChoicesResponse {
 interface PlayerChoice {
     id: string;
     choice: Choices;
+    resultBalance: number;
 }
