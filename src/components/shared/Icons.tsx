@@ -1,11 +1,17 @@
 import styled from 'styled-components';
 import { TEXT_COLOR_GREEN, TEXT_COLOR_SILVER } from '../../config/Styles.ts';
 
+import backArrowUrl from '/svg/back-arrow.svg';
+import closeUrl from '/svg/close.svg';
+import creditCardUrl from '/svg/credit-card.svg';
+import greenLogoUrl from '/svg/split-or-steal-logo-green.svg';
+import loadingSpinnerUrl from '/gifs/loading-spinner.gif';
+
 export const BackArrow = styled.span<{ $dimension }>`
     height: ${(props) => `${props.$dimension}px`};
     width: ${(props) => `${props.$dimension}px`};
 
-    background-image: url(../../../src/assets/svg/back-arrow.svg);
+    background-image: url(${backArrowUrl});
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
@@ -17,7 +23,7 @@ export const CardIcon = styled.span<{ $dimension: number }>`
     height: ${(props) => `${props.$dimension}px`};
     width: ${(props) => `${props.$dimension}px`};
 
-    background-image: url(../../../src/assets/svg/credit-card.svg);
+    background-image: url(${creditCardUrl});
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
@@ -28,7 +34,7 @@ export const CloseIcon = styled.span<{ $dimension: number }>`
     height: ${(props) => `${props.$dimension}px`};
     width: ${(props) => `${props.$dimension}px`};
 
-    background-image: url(../../../src/assets/svg/close.svg);
+    background-image: url(${closeUrl});
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
@@ -55,7 +61,7 @@ export const LoadingSpinner = styled.span<{
 
     align-items: center;
     align-self: center;
-    background-image: url(../../../src/assets/gifs/loading-spinner.gif);
+    background-image: url(${loadingSpinnerUrl});
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
@@ -75,7 +81,7 @@ export const SplitOrStealGreenLogo = styled.span<{ $dimension: number }>`
     height: ${(props) => `${props.$dimension}px`};
     width: ${(props) => `${props.$dimension}px`};
 
-    background-image: url(../../../src/assets/svg/split-or-steal-logo-green.svg);
+    background-image: url(${greenLogoUrl});
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
