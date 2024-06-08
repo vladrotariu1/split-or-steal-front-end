@@ -11,18 +11,24 @@ import { CreateUserForm } from './features/authentication/CreateUserForm.tsx';
 import { PaymentMethods } from './features/payment-methods/PaymentMethods.tsx';
 import { LOCAL_STORAGE_ACCESS_TOKEN_KEY } from './config/Variables.ts';
 import { useLoginWithTokenMutation } from './store/api/authApi.ts';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { NewGamePage } from './features/layout/NewGamePage.tsx';
 import { PaymentsReturnPage } from './features/layout/PaymentsReturnPage.tsx';
 import { AddCreditPage } from './features/layout/AddCreditPage.tsx';
 import { GameHistoryPage } from './features/layout/GameHistoryPage.tsx';
 import { GameDetailsPage } from './features/layout/GameDetailsPage.tsx';
+import { Socket } from 'socket.io-client';
+import { SocketContext } from './context/SocketContext.tsx';
+import { GoldenBallsGamePage } from './features/layout/GoldenBallsGamePage.tsx';
 
 function App() {
     const { accessToken, loggedIn } = useSelector(
         (state: RootState) => state.currentUser,
     );
+
     const [logInWithToken] = useLoginWithTokenMutation();
+    const [socket, setSocket] = useState<Socket>(null);
+
     const navigate = useNavigate();
 
     if (accessToken) {
@@ -51,7 +57,12 @@ function App() {
     }, [logInWithToken, loggedIn, navigate]);
 
     return (
-        <>
+        <SocketContext.Provider
+            value={{
+                socket,
+                setSocket,
+            }}
+        >
             <Navbar />
             <MainSection>
                 <Routes>
@@ -72,6 +83,10 @@ function App() {
                                 <Navigate to="/login" />
                             )
                         }
+                    />
+                    <Route
+                        path="golden-balls-round"
+                        element={<GoldenBallsGamePage />}
                     />
                     <Route
                         path="profile"
@@ -117,7 +132,7 @@ function App() {
                 </Routes>
             </MainSection>
             <InfoPopup />
-        </>
+        </SocketContext.Provider>
     );
 }
 

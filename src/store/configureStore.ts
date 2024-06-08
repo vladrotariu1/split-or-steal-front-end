@@ -7,16 +7,22 @@ import {
 import { infoPopupReducer, InfoPopupState } from './slices/infoPopup.slice.ts';
 import { userProfileApi } from './api/userProfileApi.ts';
 import { paymentMethodsApi } from './api/paymentMethodsApi.ts';
+import {
+    gameMetadataReducer,
+    GameMetadataState,
+} from './slices/gameMetadata.slice.ts';
 
 export interface RootState {
     currentUser: CurrentUserState;
     infoPopup: InfoPopupState;
+    gameMetadata: GameMetadataState;
 }
 
 const store = configureStore({
     reducer: {
         currentUser: currentUserReducer,
         infoPopup: infoPopupReducer,
+        gameMetadata: gameMetadataReducer,
         [authApi.reducerPath]: authApi.reducer,
         [userProfileApi.reducerPath]: userProfileApi.reducer,
         [paymentMethodsApi.reducerPath]: paymentMethodsApi.reducer,

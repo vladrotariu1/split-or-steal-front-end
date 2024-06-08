@@ -1,9 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore.ts';
 import {
     ChatTimer,
-    OpponentName,
     PlayerChoice,
     StartNewGameButton,
 } from '../../components/chat/ChatComponents.tsx';
@@ -14,12 +13,8 @@ import {
     PlayingAgainstWrapper,
     ResultsWrapper,
 } from '../../components/chat/ChatWrappers.tsx';
-import { Message } from '../../models/Message.ts';
-import {
-    CHAT_USERNAME_RED,
-    TEXT_COLOR_GREEN,
-    TEXT_COLOR_YELLOW,
-} from '../../config/Styles.ts';
+import { Message } from '../../models/models/Message.ts';
+import { TEXT_COLOR_GREEN, TEXT_COLOR_YELLOW } from '../../config/Styles.ts';
 import { io } from 'socket.io-client';
 import { getCurrentServiceEndpoint } from '../../config/ServiceEndpointsMap.ts';
 import { PlayerStates } from '../../models/enums/PlayerStates.ts';
@@ -44,19 +39,28 @@ import {
     getChoiceColor,
     getOutcomeColor,
 } from '../../utils/Utils.ts';
-import { GameOutcomes } from '../../models/enums/GameOutcomes.ts';
 import { updateUserBalance } from '../../store/slices/currentUser.slice.ts';
+import { ChatUserDetailsResponse } from '../../models/response/UserDetailsResponse.ts';
+import { SocketContext } from '../../context/SocketContext.tsx';
+import {
+    setChatUsersDetails,
+    setGamePot,
+    setPlayerState,
+} from '../../store/slices/gameMetadata.slice.ts';
+import { useNavigate } from 'react-router-dom';
 
 export const NewGamePage = () => {
     const [message, setMessage] = useState('');
     const [messagesList, setMessagesList] = useState([] as Message[]);
-    const [playerState, setPlayerState] = useState(PlayerStates.NOT_IN_GAME);
     const [choice, setChoice] = useState<Choices>(null);
     const [opponentChoice, setOpponentChoice] = useState<Choices>(null);
     const [timerSeconds, setTimerSeconds] = useState(0);
     const [wrapperBoxShadow, setWrapperBoxShadow] = useState<string>(null);
-    const [gameOutcome, setGameOutcome] = useState<GameOutcomes>(null);
-    const [opponentName, setOpponentName] = useState<string>(null);
+    const [gameOutcome, setGameOutcome] =
+        useState<ChatUserDetailsResponse[]>(null);
+
+    const [usersDetails, setUsersDetails] =
+        useState<ChatUserDetailsResponse[]>(null);
 
     // eslint-disable-next-line no-undef
     const intervalRef = useRef<NodeJS.Timeout>(null);
@@ -64,21 +68,27 @@ export const NewGamePage = () => {
     const { accessToken, loggedIn, userId } = useSelector(
         (state: RootState) => state.currentUser,
     );
+    const { playerState } = useSelector(
+        (state: RootState) => state.gameMetadata,
+    );
 
     const dispatch = useDispatch();
 
-    const serviceEndpoint = getCurrentServiceEndpoint();
+    const { socket, setSocket } = useContext(SocketContext);
 
-    const socket = useMemo(
-        () =>
-            io(serviceEndpoint, {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (accessToken) {
+            const socket = io(getCurrentServiceEndpoint(), {
                 autoConnect: false,
                 extraHeaders: {
                     Authorization: accessToken,
                 },
-            }),
-        [accessToken, serviceEndpoint],
-    );
+            });
+            setSocket(socket);
+        }
+    }, [accessToken, setSocket]);
 
     const onSocketConnect = () => {
         console.log('connected');
@@ -98,19 +108,22 @@ export const NewGamePage = () => {
             startGameResponse.chatDuration / 1000,
         );
 
-        const opponentName =
-            startGameResponse.usersDetails[0].userId === userId
-                ? startGameResponse.usersDetails[1].userName
-                : startGameResponse.usersDetails[0].userName;
+        dispatch(setGamePot(startGameResponse.roomPot));
+        dispatch(setChatUsersDetails(startGameResponse.usersDetails));
 
-        setOpponentName(opponentName);
         setWrapperBoxShadow(null);
         setTimerSeconds(() => chatTimerDuration);
-        setPlayerState(PlayerStates.IN_GAME);
+        setUsersDetails(startGameResponse.usersDetails);
+        dispatch(setPlayerState(PlayerStates.WAITING_FOR_GOLDEN_BALLS));
 
         intervalRef.current = setInterval(() => {
             setTimerSeconds((seconds) => (seconds - 1 >= 0 ? seconds - 1 : 0));
         }, 1000);
+    };
+
+    const onSocketPrepareGoldenBallsRound = () => {
+        dispatch(setPlayerState(PlayerStates.PREPARING_GOLDEN_BALLS));
+        navigate('/golden-balls-round');
     };
 
     const onSocketEndGame = (playerChoices: PlayersChoicesResponse) => {
@@ -138,7 +151,7 @@ export const NewGamePage = () => {
         clearInterval(intervalRef.current);
 
         setWrapperBoxShadow(null);
-        setPlayerState(PlayerStates.DISPLAY_RESULTS);
+        dispatch(setPlayerState(PlayerStates.DISPLAY_RESULTS));
         setGameOutcome(outcome);
 
         const timeout = setTimeout(() => {
@@ -154,20 +167,20 @@ export const NewGamePage = () => {
     };
 
     const handleOnBackArrow = () => {
+        dispatch(setPlayerState(PlayerStates.NOT_IN_GAME));
         clearSocket();
-        setOpponentName(null);
         setChoice(null);
         setOpponentChoice(null);
         setMessage('');
         setMessagesList([]);
-        setPlayerState(PlayerStates.NOT_IN_GAME);
         setGameOutcome(null);
         setWrapperBoxShadow(null);
     };
 
     const handleOnClose = () => {
+        socket.disconnect();
         clearSocket();
-        setPlayerState(PlayerStates.NOT_IN_GAME);
+        dispatch(setPlayerState(PlayerStates.NOT_IN_GAME));
         setWrapperBoxShadow(null);
     };
 
@@ -200,7 +213,7 @@ export const NewGamePage = () => {
     };
 
     const handleSearchNewGameClick = () => {
-        setPlayerState(PlayerStates.SEARCHING_FOR_GAME);
+        dispatch(setPlayerState(PlayerStates.SEARCHING_FOR_GAME));
         setWrapperBoxShadow(TEXT_COLOR_GREEN);
 
         socket.connect();
@@ -208,6 +221,10 @@ export const NewGamePage = () => {
         socket.on('connect', onSocketConnect);
         socket.on('disconnect', onSocketDisconnect);
         socket.on('message', onSocketMessage);
+        socket.on(
+            'prepare-golden-balls-round',
+            onSocketPrepareGoldenBallsRound,
+        );
         socket.on('start-game', onSocketStartGame);
         socket.on('end-game', onSocketEndGame);
     };
@@ -215,89 +232,96 @@ export const NewGamePage = () => {
     const textPlaceholder = `Type your message${!loggedIn ? ' (please login 🔒)' : ' ✏️'}`;
 
     return (
-        <ChatWrapper
-            $boxShadow={wrapperBoxShadow}
-            $startAnimation={playerState === PlayerStates.SEARCHING_FOR_GAME}
-        >
-            {playerState === PlayerStates.NOT_IN_GAME && (
-                <>
-                    <StartNewGameButton onClick={handleSearchNewGameClick}>
-                        Start new game
-                    </StartNewGameButton>
-                </>
-            )}
-            {playerState === PlayerStates.SEARCHING_FOR_GAME && (
-                <>
-                    <TopLeftPositionedWrapper>
-                        <CloseIcon onClick={handleOnClose} $dimension={24} />
-                    </TopLeftPositionedWrapper>
-                    <LoadingSpinner $dimension={240} $innerText={'SEARCHING'} />
-                </>
-            )}
-            {playerState === PlayerStates.IN_GAME && (
-                <>
-                    <TopRightPositionedWrapper>
-                        <ChatTimer $color={TEXT_COLOR_GREEN}>
-                            {formatTimer(timerSeconds)}
-                        </ChatTimer>
-                    </TopRightPositionedWrapper>
-
-                    <ChatMetadataWrapper>
-                        <PlayingAgainstWrapper>
-                            Playing with
-                        </PlayingAgainstWrapper>
-                        <OpponentName $color={CHAT_USERNAME_RED}>
-                            {opponentName}
-                        </OpponentName>
-                    </ChatMetadataWrapper>
-
-                    <ChatMessageList
-                        currentUserId={userId}
-                        messagesList={messagesList}
-                    />
-
-                    <ChatMessageInput
-                        displaySplitOrSteal={
-                            playerState === PlayerStates.IN_GAME
-                        }
-                        handleOnChooseSplit={handleOnChooseSplit}
-                        handleOnChooseSteal={handleOnChooseSteal}
-                        handleOnInputChange={handleOnInputChange}
-                        handleOnKeyPress={handleOnKeyPress}
-                        inputDisabled={!loggedIn}
-                        inputTextPlaceholder={textPlaceholder}
-                        inputValue={message}
-                    />
-                </>
-            )}
-            {playerState === PlayerStates.DISPLAY_RESULTS && (
-                <>
-                    <TopLeftPositionedWrapper>
-                        <BackArrow
-                            onClick={handleOnBackArrow}
-                            $dimension={24}
+        <>
+            <ChatWrapper
+                $boxShadow={wrapperBoxShadow}
+                $startAnimation={
+                    playerState === PlayerStates.SEARCHING_FOR_GAME
+                }
+            >
+                {playerState === PlayerStates.NOT_IN_GAME && (
+                    <>
+                        <StartNewGameButton onClick={handleSearchNewGameClick}>
+                            Start new game
+                        </StartNewGameButton>
+                    </>
+                )}
+                {playerState === PlayerStates.SEARCHING_FOR_GAME && (
+                    <>
+                        <TopLeftPositionedWrapper>
+                            <CloseIcon
+                                onClick={handleOnClose}
+                                $dimension={24}
+                            />
+                        </TopLeftPositionedWrapper>
+                        <LoadingSpinner
+                            $dimension={240}
+                            $innerText={'SEARCHING'}
                         />
-                    </TopLeftPositionedWrapper>
+                    </>
+                )}
+                {playerState === PlayerStates.IN_GAME && (
+                    <>
+                        <TopRightPositionedWrapper>
+                            <ChatTimer $color={TEXT_COLOR_GREEN}>
+                                {formatTimer(timerSeconds)}
+                            </ChatTimer>
+                        </TopRightPositionedWrapper>
 
-                    <ResultsWrapper>
-                        <PlayerChoiceWrapper>
-                            You chose:
-                            <PlayerChoice $color={getChoiceColor(choice)}>
-                                {choice}
-                            </PlayerChoice>
-                        </PlayerChoiceWrapper>
-                        <VerticalSeparator />
-                        <PlayerChoiceWrapper>
-                            Opponent chose:
-                            <PlayerChoice
-                                $color={getChoiceColor(opponentChoice)}
-                            >
-                                {opponentChoice}
-                            </PlayerChoice>
-                        </PlayerChoiceWrapper>
-                    </ResultsWrapper>
-                </>
-            )}
-        </ChatWrapper>
+                        <ChatMetadataWrapper>
+                            <PlayingAgainstWrapper>
+                                Playing with
+                            </PlayingAgainstWrapper>
+                        </ChatMetadataWrapper>
+
+                        <ChatMessageList
+                            currentUserId={userId}
+                            messagesList={messagesList}
+                        />
+
+                        <ChatMessageInput
+                            displaySplitOrSteal={
+                                playerState === PlayerStates.IN_GAME
+                            }
+                            handleOnChooseSplit={handleOnChooseSplit}
+                            handleOnChooseSteal={handleOnChooseSteal}
+                            handleOnInputChange={handleOnInputChange}
+                            handleOnKeyPress={handleOnKeyPress}
+                            inputDisabled={!loggedIn}
+                            inputTextPlaceholder={textPlaceholder}
+                            inputValue={message}
+                        />
+                    </>
+                )}
+                {playerState === PlayerStates.DISPLAY_RESULTS && (
+                    <>
+                        <TopLeftPositionedWrapper>
+                            <BackArrow
+                                onClick={handleOnBackArrow}
+                                $dimension={24}
+                            />
+                        </TopLeftPositionedWrapper>
+
+                        <ResultsWrapper>
+                            <PlayerChoiceWrapper>
+                                You chose:
+                                <PlayerChoice $color={getChoiceColor(choice)}>
+                                    {choice}
+                                </PlayerChoice>
+                            </PlayerChoiceWrapper>
+                            <VerticalSeparator />
+                            <PlayerChoiceWrapper>
+                                Opponent chose:
+                                <PlayerChoice
+                                    $color={getChoiceColor(opponentChoice)}
+                                >
+                                    {opponentChoice}
+                                </PlayerChoice>
+                            </PlayerChoiceWrapper>
+                        </ResultsWrapper>
+                    </>
+                )}
+            </ChatWrapper>
+        </>
     );
 };

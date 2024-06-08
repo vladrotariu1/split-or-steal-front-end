@@ -49,3 +49,9 @@ export const ProfilePictureInput = styled.input`
     top: 0;
     width: 100%;
 `;
+
+export const ShortUserProfile = styled.div`
+    align-items: center;
+    display: flex;
+    margin-bottom: 16px;
+`;

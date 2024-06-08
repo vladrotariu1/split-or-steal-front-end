@@ -1,7 +1,7 @@
 import { userProfileBaseApi } from './baseApi.ts';
 import { UpdateProfilePictureResponse } from '../../models/response/UpdateProfilePictureResponse.ts';
 import { GameHistoryResponse } from '../../models/response/GameHistoryResponse.ts';
-import { Message } from '../../models/Message.ts';
+import { Message } from '../../models/models/Message.ts';
 
 const injectedRtkApi = userProfileBaseApi.injectEndpoints({
     endpoints: (builder) => ({
