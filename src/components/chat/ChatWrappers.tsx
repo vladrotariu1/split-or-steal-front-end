@@ -77,6 +77,8 @@ export const PlayerChoiceWrapper = styled.div`
     display: flex;
     flex: 1;
     flex-direction: column;
+    font-size: 24px;
+    justify-content: center;
 `;
 
 export const PlayingAgainstWrapper = styled.div`
@@ -88,6 +90,9 @@ export const ResultsWrapper = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: space-around;
+    height: 200px;
+    margin-bottom: 24px;
+    width: 100%;
 `;
 
 export const SplitOrStealChoiceWrapper = styled.div`

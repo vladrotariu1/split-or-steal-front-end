@@ -3,7 +3,10 @@ import {
     GoldenBallsPlayerCollectionWrapper,
     GoldenBallsWrapper,
 } from '../../components/golden-balls/GoldenBallsWrappers.tsx';
-import { GoldenBall } from '../../components/golden-balls/GoldenBallsComponents.tsx';
+import {
+    GoldenBall,
+    KickButton,
+} from '../../components/golden-balls/GoldenBallsComponents.tsx';
 import { ChatMessageUsername } from '../../components/chat/ChatComponents.tsx';
 import { TEXT_COLOR_SILVER } from '../../config/Styles.ts';
 import {
@@ -13,13 +16,23 @@ import {
 import { GoldenBall as GoldenBallType } from '../../models/models/GoldenBall.ts';
 
 interface GoldenBallsPlayerCollectionProps {
+    enableKickButton: boolean;
+    isUerKickVoted?: boolean;
+    handleKickUser?: () => void;
+    hiddenBalls?: GoldenBallType[];
     shownBalls: GoldenBallType[];
+    showHiddenBalls: boolean;
     userName: string;
     userPhoto: string;
 }
 
 export const GoldenBallsPlayerCollection = ({
+    enableKickButton,
+    isUerKickVoted,
+    handleKickUser,
+    hiddenBalls,
     shownBalls,
+    showHiddenBalls,
     userName,
     userPhoto,
 }: GoldenBallsPlayerCollectionProps) => {
@@ -41,18 +54,54 @@ export const GoldenBallsPlayerCollection = ({
                         <GoldenBall
                             key={goldenBall.id}
                             $isShownBall={true}
-                            $isKillerBall={false}
+                            $isKillerBall={goldenBall.value === -1}
                         >
-                            {goldenBall.value}
+                            {goldenBall.value === -1
+                                ? 'KILLER'
+                                : goldenBall.value}
                         </GoldenBall>
                     ))}
                 </GoldenBallsWrapper>
                 <GoldenBallsWrapper>
-                    <GoldenBall $isShownBall={false} $isKillerBall={false} />
-                    <GoldenBall $isShownBall={false} $isKillerBall={false} />
-                    <GoldenBall $isShownBall={false} $isKillerBall={false} />
+                    {hiddenBalls ? (
+                        hiddenBalls.map((goldenBall) => (
+                            <GoldenBall
+                                key={goldenBall.id}
+                                $isShownBall={showHiddenBalls}
+                                $isKillerBall={goldenBall.value === -1}
+                            >
+                                {goldenBall.value === -1
+                                    ? 'KILLER'
+                                    : goldenBall.value}
+                            </GoldenBall>
+                        ))
+                    ) : (
+                        <>
+                            <GoldenBall
+                                $isShownBall={false}
+                                $isKillerBall={false}
+                            />
+                            <GoldenBall
+                                $isShownBall={false}
+                                $isKillerBall={false}
+                            />
+                            <GoldenBall
+                                $isShownBall={false}
+                                $isKillerBall={false}
+                            />
+                        </>
+                    )}
                 </GoldenBallsWrapper>
             </GoldenBallsCollectionWrapper>
+            {enableKickButton && (
+                <>
+                    {isUerKickVoted ? (
+                        '❌'
+                    ) : (
+                        <KickButton onClick={handleKickUser}>KICK</KickButton>
+                    )}
+                </>
+            )}
         </GoldenBallsPlayerCollectionWrapper>
     );
 };

@@ -42,10 +42,6 @@ export const ChatMessageInput = styled.input`
     }
 `;
 
-export const ChatTimer = styled.span<{ $color: string }>`
-    color: ${(props) => props.$color};
-`;
-
 export const OpponentName = styled.span<{ $color: string }>`
     color: ${(props) => props.$color};
     display: block;
@@ -56,7 +52,7 @@ export const OpponentName = styled.span<{ $color: string }>`
 export const PlayerChoice = styled.span<{ $color: string }>`
     color: ${(props) => props.$color};
     display: block;
-    font-size: 48px;
+    font-size: 72px;
 `;
 
 export const SplitOrStealIcon = styled.span<{ $color: string }>`

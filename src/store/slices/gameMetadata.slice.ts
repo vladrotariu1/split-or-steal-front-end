@@ -6,12 +6,14 @@ import { Message } from '../../models/models/Message.ts';
 export interface GameMetadataState {
     chatMessageList: Message[];
     gamePot: number;
+    numberOfKillerBalls: number;
     playerState: PlayerStates;
     usersDetails: ChatUserDetailsResponse[];
 }
 
 const initialState: GameMetadataState = {
     chatMessageList: [],
+    numberOfKillerBalls: null,
     gamePot: null,
     playerState: PlayerStates.NOT_IN_GAME,
     usersDetails: [],
@@ -30,6 +32,12 @@ const gameMetadataSlice = createSlice({
             return {
                 ...state,
                 gamePot: action.payload,
+            };
+        },
+        setNumberOfKillerBalls(state, action: { payload: number; type: any }) {
+            return {
+                ...state,
+                numberOfKillerBalls: action.payload,
             };
         },
         setPlayerState(state, action: { payload: PlayerStates; type: any }) {
@@ -53,6 +61,7 @@ const gameMetadataSlice = createSlice({
 export const {
     resetGameMetadata,
     setGamePot,
+    setNumberOfKillerBalls,
     setPlayerState,
     setChatUsersDetails,
 } = gameMetadataSlice.actions;

@@ -27,3 +27,14 @@ export function formatUnixTimestamp(unixTimestamp: number): string {
     // Return the formatted date string
     return `${dayStr} / ${monthStr} / ${year}`;
 }
+/**
+ * Function to check if a given string is a valid number.
+ * @param str - The string to check.
+ * @returns True if the string is a number, false otherwise.
+ */
+export function isNumber(str: string): boolean {
+    if (str.trim() === '') {
+        return false; // An empty string or string with only spaces is not a number
+    }
+    return !isNaN(Number(str));
+}

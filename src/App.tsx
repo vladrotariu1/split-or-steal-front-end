@@ -20,6 +20,7 @@ import { GameDetailsPage } from './features/layout/GameDetailsPage.tsx';
 import { Socket } from 'socket.io-client';
 import { SocketContext } from './context/SocketContext.tsx';
 import { GoldenBallsGamePage } from './features/layout/GoldenBallsGamePage.tsx';
+import { SplitOrStealPage } from './features/layout/SplitOrStealPage.tsx';
 
 function App() {
     const { accessToken, loggedIn } = useSelector(
@@ -87,6 +88,10 @@ function App() {
                     <Route
                         path="golden-balls-round"
                         element={<GoldenBallsGamePage />}
+                    />
+                    <Route
+                        path="split-or-steal"
+                        element={<SplitOrStealPage />}
                     />
                     <Route
                         path="profile"

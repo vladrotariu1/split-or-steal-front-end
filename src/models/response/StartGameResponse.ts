@@ -1,7 +1,7 @@
 import { ChatUserDetailsResponse } from './UserDetailsResponse.ts';
 
 export interface StartGameResponse {
-    chatDuration: number;
+    numberOfKillerBalls: number;
     roomPot: number;
     usersDetails: ChatUserDetailsResponse[];
 }

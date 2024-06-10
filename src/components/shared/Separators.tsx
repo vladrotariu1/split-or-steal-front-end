@@ -1,8 +1,8 @@
 import styled from 'styled-components';
-import { MAIN_COLOR_GREY } from '../../config/Styles.ts';
+import { TEXT_COLOR_SILVER } from '../../config/Styles.ts';
 
 export const VerticalSeparator = styled.div`
-    background-color: ${MAIN_COLOR_GREY};
+    background-color: ${TEXT_COLOR_SILVER};
     height: 100%;
     width: 2px;
 `;
