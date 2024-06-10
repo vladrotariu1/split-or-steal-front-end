@@ -24,9 +24,14 @@ export const GoldenBallsPlayerCollectionWrapper = styled.div`
 export const GoldenBallsGameInfoWrapper = styled.div`
     align-items: center;
     display: flex;
+    flex-direction: column;
     height: 500px;
     justify-content: center;
     width: 500px;
+
+    > * {
+        margin-bottom: 8px;
+    }
 `;
 
 export const GoldenBallsOpponentsWrapper = styled.div`

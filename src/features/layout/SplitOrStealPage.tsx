@@ -154,7 +154,9 @@ export const SplitOrStealPage = () => {
                         <VerticalSeparator />
                         <PlayerChoiceWrapper>
                             Opponent chose:
-                            <PlayerChoice $color={getChoiceColor(choice)}>
+                            <PlayerChoice
+                                $color={getChoiceColor(opponentChoice)}
+                            >
                                 {opponentChoice}
                             </PlayerChoice>
                         </PlayerChoiceWrapper>

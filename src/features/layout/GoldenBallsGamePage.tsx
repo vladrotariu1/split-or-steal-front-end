@@ -312,7 +312,7 @@ export const GoldenBallsGamePage = () => {
                     )}
                     <GoldenBallsGameInfoWrapper>
                         <WhiteText>
-                            Remained <RedText>KILLER</RedText> balls:{' '}
+                            <RedText>KILLER</RedText> balls:{' '}
                             <RedText>{numberOfKillerBalls}</RedText>
                         </WhiteText>
                         {isPreparingSplitOrSteal && (
