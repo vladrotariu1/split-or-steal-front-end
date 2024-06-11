@@ -74,6 +74,8 @@ export const GoldenBallsGamePage = () => {
     }>({});
     const [killerBallsRemovedBalance, setKillerBallsRemovedBalance] =
         useState(0);
+    const [kickedUsers, setKickedUsers] = useState<string[]>([]);
+    const [kickedUser, setKickedUser] = useState<string>(null);
 
     // eslint-disable-next-line no-undef
     const intervalRef = useRef<NodeJS.Timeout>(null);
@@ -107,6 +109,9 @@ export const GoldenBallsGamePage = () => {
             setPlayersGoldenBalls(null);
             setTimerSeconds(roundTimerDuration);
             setDisableGoldenBallsDeclaration(false);
+            if (kickedUser) {
+                setKickedUsers((kickedUsers) => [...kickedUsers, kickedUser]);
+            }
 
             intervalRef.current = setInterval(() => {
                 setTimerSeconds((seconds) =>
@@ -116,7 +121,7 @@ export const GoldenBallsGamePage = () => {
 
             console.log('start-round!!!!', goldenBallsRoundStartResponse);
         },
-        [dispatch],
+        [dispatch, kickedUser],
     );
 
     const onSocketPrepareGoldenBallsRound = useCallback(() => {
@@ -142,6 +147,7 @@ export const GoldenBallsGamePage = () => {
             setPlayersGoldenBalls(ballsAssignments);
             setDisableGoldenBallsDeclaration(true);
             setDeclaredGoldenBalls({});
+            setKickedUser(kickedUserId);
 
             if (kickedUserId === currentUserId) {
                 navigate('/new-game');
@@ -249,7 +255,7 @@ export const GoldenBallsGamePage = () => {
         let componentProperties = {
             handleKickUser: handleKickUserCallback(user.userId),
             hiddenBalls: declaredGoldenBalls[user.userId] || undefined,
-            shownBalls: getUserShownBalls(user.userId, shownBalls).shownBalls,
+            shownBalls: getUserShownBalls(user.userId, shownBalls)?.shownBalls,
             userName: user.userName,
             userPhoto: user.userPhotoUrl || DEFAULT_USER_IMAGE_URL,
         };
@@ -283,16 +289,23 @@ export const GoldenBallsGamePage = () => {
     if (shownBalls) {
         userShownBallsToComponentsMapping = usersDetails
             .filter((usersDetails) => usersDetails.userId !== currentUserId)
-            .map((userDetails) => (
-                <GoldenBallsPlayerCollection
-                    enableKickButton={true}
-                    isUerKickVoted={userDetails.userId === currentUserKickVote}
-                    showHiddenBalls={!isInRound}
-                    {...generateGoldenBallsPlayerCollectionProperties(
-                        userDetails,
-                    )}
-                />
-            ));
+            .map((userDetails) =>
+                !kickedUsers.includes(userDetails.userId) ? (
+                    <GoldenBallsPlayerCollection
+                        enableKickButton={true}
+                        isUserKicked={userDetails.userId === kickedUser}
+                        isUerKickVoted={
+                            userDetails.userId === currentUserKickVote
+                        }
+                        showHiddenBalls={!isInRound}
+                        {...generateGoldenBallsPlayerCollectionProperties(
+                            userDetails,
+                        )}
+                    />
+                ) : (
+                    <GoldenBallsPlayerCollectionScaffold />
+                ),
+            );
     }
 
     return shownBalls ? (
@@ -350,6 +363,7 @@ export const GoldenBallsGamePage = () => {
 
             <GoldenBallsPlayerSectionWrapper>
                 <GoldenBallsPlayerCollection
+                    isUserKicked={false}
                     enableKickButton={false}
                     showHiddenBalls={true}
                     userName={currentUserName || currentUserEmail}

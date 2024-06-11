@@ -10,7 +10,7 @@ export const NavbarWrapper = styled.nav`
     display: flex;
     font-weight: 500;
     height: 64px;
-    position: absolute;
+    position: relative;
     width: 100%;
 `;
 

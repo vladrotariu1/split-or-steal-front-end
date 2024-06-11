@@ -14,9 +14,15 @@ import {
     ShortUserProfile,
 } from '../../components/shared/ProfilePicture.tsx';
 import { GoldenBall as GoldenBallType } from '../../models/models/GoldenBall.ts';
+import { WhiteText } from '../../components/shared/Text.tsx';
+import { PlayerStates } from '../../models/enums/PlayerStates.ts';
+import { LoadingSpinner } from '../../components/shared/Icons.tsx';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/configureStore.ts';
 
 interface GoldenBallsPlayerCollectionProps {
     enableKickButton: boolean;
+    isUserKicked: boolean;
     isUerKickVoted?: boolean;
     handleKickUser?: () => void;
     hiddenBalls?: GoldenBallType[];
@@ -28,6 +34,7 @@ interface GoldenBallsPlayerCollectionProps {
 
 export const GoldenBallsPlayerCollection = ({
     enableKickButton,
+    isUserKicked,
     isUerKickVoted,
     handleKickUser,
     hiddenBalls,
@@ -36,7 +43,11 @@ export const GoldenBallsPlayerCollection = ({
     userName,
     userPhoto,
 }: GoldenBallsPlayerCollectionProps) => {
-    return (
+    const { playerState } = useSelector(
+        (state: RootState) => state.gameMetadata,
+    );
+
+    return shownBalls ? (
         <GoldenBallsPlayerCollectionWrapper>
             <ShortUserProfile>
                 <ChatMessageUsername $color={TEXT_COLOR_SILVER}>
@@ -93,15 +104,21 @@ export const GoldenBallsPlayerCollection = ({
                     )}
                 </GoldenBallsWrapper>
             </GoldenBallsCollectionWrapper>
-            {enableKickButton && (
-                <>
-                    {isUerKickVoted ? (
-                        '❌'
-                    ) : (
-                        <KickButton onClick={handleKickUser}>KICK</KickButton>
-                    )}
-                </>
-            )}
+            {enableKickButton &&
+                playerState === PlayerStates.IN_GOLDEN_BALLS_ROUND && (
+                    <>
+                        {isUerKickVoted ? (
+                            '❌'
+                        ) : (
+                            <KickButton onClick={handleKickUser}>
+                                KICK
+                            </KickButton>
+                        )}
+                    </>
+                )}
+            {isUserKicked && <WhiteText>🚫 Kicked 🚫</WhiteText>}
         </GoldenBallsPlayerCollectionWrapper>
+    ) : (
+        <LoadingSpinner $dimension={120} />
     );
 };

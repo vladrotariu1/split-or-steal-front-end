@@ -8,4 +8,5 @@ export const MainSection = styled.section`
     flex-direction: column;
     justify-content: center;
     min-height: 100vh;
+    overflow-y: scroll;
 `;
