@@ -6,14 +6,22 @@ import { SocketContext } from '../../context/SocketContext.tsx';
 import {
     BlueMarineWrapper,
     FixedBottomLeftWrapper,
+    MinimisedBlueMarineWrapper,
+    TopRightPositionedWrapper,
 } from '../../components/shared/Wrappers.tsx';
 import { ChatMessageList } from './ChatMessageList.tsx';
 import { ChatMessageInput } from './ChatMessageInput.tsx';
-import { LoadingSpinner } from '../../components/shared/Icons.tsx';
+import {
+    DownArrow,
+    LoadingSpinner,
+    UpArrow,
+} from '../../components/shared/Icons.tsx';
 import { addMessageToList } from '../../store/slices/gameMetadata.slice.ts';
+import { GreenText } from '../../components/shared/Text.tsx';
 
 export const Chat = () => {
     const [message, setMessage] = useState('');
+    const [isChatMinimised, setIsChatMinimised] = useState(true);
 
     const { userId, loggedIn } = useSelector(
         (state: RootState) => state.currentUser,
@@ -49,6 +57,14 @@ export const Chat = () => {
         }
     };
 
+    const handleOnClickOnMinimisedRoomChat = () => {
+        setIsChatMinimised(false);
+    };
+
+    const handleOnClickChatMinimiseArrow = () => {
+        setIsChatMinimised(true);
+    };
+
     useEffect(() => {
         if (socket) {
             socket.removeAllListeners('message');
@@ -60,29 +76,46 @@ export const Chat = () => {
 
     return (
         <FixedBottomLeftWrapper>
-            <BlueMarineWrapper $startAnimation={false}>
-                {socket ? (
-                    <>
-                        <ChatMessageList
-                            currentUserId={userId}
-                            messagesList={chatMessageList}
+            {!isChatMinimised ? (
+                <BlueMarineWrapper $startAnimation={false}>
+                    <TopRightPositionedWrapper>
+                        <DownArrow
+                            $dimension={24}
+                            onClick={handleOnClickChatMinimiseArrow}
                         />
+                    </TopRightPositionedWrapper>
+                    {socket ? (
+                        <>
+                            <ChatMessageList
+                                currentUserId={userId}
+                                messagesList={chatMessageList}
+                            />
 
-                        <ChatMessageInput
-                            handleOnInputChange={handleOnInputChange}
-                            handleOnKeyPress={handleOnKeyPress}
-                            inputDisabled={!loggedIn}
-                            inputTextPlaceholder={textPlaceholder}
-                            inputValue={message}
+                            <ChatMessageInput
+                                handleOnInputChange={handleOnInputChange}
+                                handleOnKeyPress={handleOnKeyPress}
+                                inputDisabled={!loggedIn}
+                                inputTextPlaceholder={textPlaceholder}
+                                inputValue={message}
+                            />
+                        </>
+                    ) : (
+                        <LoadingSpinner
+                            $dimension={160}
+                            $innerText={'LOADING CHAT'}
                         />
-                    </>
-                ) : (
-                    <LoadingSpinner
-                        $dimension={160}
-                        $innerText={'LOADING CHAT'}
-                    />
-                )}
-            </BlueMarineWrapper>
+                    )}
+                </BlueMarineWrapper>
+            ) : (
+                <MinimisedBlueMarineWrapper
+                    onClick={handleOnClickOnMinimisedRoomChat}
+                >
+                    <TopRightPositionedWrapper>
+                        <UpArrow $dimension={24} />
+                    </TopRightPositionedWrapper>
+                    <GreenText>Room chat</GreenText>
+                </MinimisedBlueMarineWrapper>
+            )}
         </FixedBottomLeftWrapper>
     );
 };

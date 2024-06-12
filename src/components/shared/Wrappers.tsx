@@ -62,3 +62,14 @@ export const BlueMarineWrapper = styled.div<{
         }
     }
 `;
+
+export const MinimisedBlueMarineWrapper = styled.div`
+    align-items: center;
+    background-color: ${MAIN_COLOR_BLUE_MARINE};
+    border-radius: 0 16px;
+    cursor: pointer;
+    display: flex;
+    height: 48px;
+    justify-content: center;
+    width: 360px;
+`;

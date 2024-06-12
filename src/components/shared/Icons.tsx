@@ -42,6 +42,19 @@ export const CloseIcon = styled.span<{ $dimension: number }>`
     display: block;
 `;
 
+export const DownArrow = styled.span<{ $dimension }>`
+    height: ${(props) => `${props.$dimension}px`};
+    width: ${(props) => `${props.$dimension}px`};
+
+    background-image: url(${backArrowUrl});
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    cursor: pointer;
+    display: block;
+    transform: rotate(-90deg);
+`;
+
 export const ListDisc = styled.span<{ $dimension }>`
     height: ${(props) => `${props.$dimension}px`};
     width: ${(props) => `${props.$dimension}px`};
@@ -86,4 +99,17 @@ export const SplitOrStealGreenLogo = styled.span<{ $dimension: number }>`
     background-repeat: no-repeat;
     background-size: contain;
     display: block;
+`;
+
+export const UpArrow = styled.span<{ $dimension }>`
+    height: ${(props) => `${props.$dimension}px`};
+    width: ${(props) => `${props.$dimension}px`};
+
+    background-image: url(${backArrowUrl});
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    cursor: pointer;
+    display: block;
+    transform: rotate(90deg);
 `;
