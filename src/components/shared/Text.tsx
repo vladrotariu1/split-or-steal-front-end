@@ -20,3 +20,8 @@ export const MoneyPotText = styled.h2`
 export const WhiteText = styled.span`
     color: ${TEXT_COLOR_WHITE};
 `;
+
+export const CustomText = styled.span<{ $color: string; $fontSize: number }>`
+    color: ${(props) => props.$color};
+    font-size: ${(props) => `${props.$fontSize}px`};
+`;

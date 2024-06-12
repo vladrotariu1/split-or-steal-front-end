@@ -16,14 +16,12 @@ import {
     setGamePot,
     setNumberOfKillerBalls,
     setPlayerState,
+    setTimerSeconds,
 } from '../../store/slices/gameMetadata.slice.ts';
 import { GoldenBall } from '../../models/models/GoldenBall.ts';
 import { useNavigate } from 'react-router-dom';
 import { DEFAULT_USER_IMAGE_URL } from '../../config/Variables.ts';
 import { GoldenBallsPlayerCollectionScaffold } from '../golden-balls/GoldenBallsPlayerCollectionScaffold.tsx';
-import { RoundTimer } from '../../components/shared/RoundTimer.tsx';
-import { TEXT_COLOR_GREEN } from '../../config/Styles.ts';
-import { formatTimer } from '../../utils/Format.ts';
 import { GoldenBallsAssignment } from '../../models/models/GoldenBallsAssignment.ts';
 import { GoldenBallsRoundEndResponse } from '../../models/response/GoldenBallsRoundEndResponse.ts';
 import { ChatUserDetailsResponse } from '../../models/response/UserDetailsResponse.ts';
@@ -36,6 +34,7 @@ import {
     RedText,
     WhiteText,
 } from '../../components/shared/Text.tsx';
+import { RoundTimer } from '../shared/RoundTimer.tsx';
 
 const getUserShownBalls = (
     userId: string,
@@ -65,7 +64,6 @@ export const GoldenBallsGamePage = () => {
     const [shownBalls, setShownBalls] = useState<GoldenBallsAssignment[]>(null);
     const [playersGoldenBalls, setPlayersGoldenBalls] =
         useState<{ playerId: string; balls: GoldenBall[] }[]>(null);
-    const [timerSeconds, setTimerSeconds] = useState(0);
     const [currentUserKickVote, setCurrentUserKickVote] = useState(null);
     const [disableGoldenBallsDeclaration, setDisableGoldenBallsDeclaration] =
         useState(false);
@@ -102,6 +100,8 @@ export const GoldenBallsGamePage = () => {
             );
 
             dispatch(setPlayerState(PlayerStates.IN_GOLDEN_BALLS_ROUND));
+            dispatch(setTimerSeconds(roundTimerDuration));
+
             setUserGoldenBalls(
                 goldenBallsRoundStartResponse.userGoldenBallsAssignment,
             );
@@ -112,12 +112,6 @@ export const GoldenBallsGamePage = () => {
             if (kickedUser) {
                 setKickedUsers((kickedUsers) => [...kickedUsers, kickedUser]);
             }
-
-            intervalRef.current = setInterval(() => {
-                setTimerSeconds((seconds) =>
-                    seconds - 1 >= 0 ? seconds - 1 : 0,
-                );
-            }, 1000);
 
             console.log('start-round!!!!', goldenBallsRoundStartResponse);
         },
@@ -141,6 +135,7 @@ export const GoldenBallsGamePage = () => {
             dispatch(setPlayerState(PlayerStates.NOT_IN_GAME));
             dispatch(setNumberOfKillerBalls(killerBallsRemained));
             dispatch(setGamePot(newRoomPot));
+            dispatch(setTimerSeconds(null));
 
             console.log('users balls after the round', ballsAssignments);
 
@@ -205,7 +200,11 @@ export const GoldenBallsGamePage = () => {
 
     useEffect(() => {
         if (socket) {
-            socket.removeListener();
+            socket.removeAllListeners('start-golden-balls-round');
+            socket.removeAllListeners('prepare-golden-balls-round');
+            socket.removeAllListeners('end-golden-balls-round');
+            socket.removeAllListeners('user-golden-balls-declaration');
+            socket.removeAllListeners('prepare-split-or-steal');
             socket.on(
                 'start-golden-balls-round',
                 onSocketStartGoldenBallsRound,
@@ -346,14 +345,7 @@ export const GoldenBallsGamePage = () => {
                                 $innerText="PREPARING"
                             />
                         )}
-                        {isInRound && (
-                            <RoundTimer
-                                $color={TEXT_COLOR_GREEN}
-                                $fontSize={72}
-                            >
-                                {formatTimer(timerSeconds)}
-                            </RoundTimer>
-                        )}
+                        {isInRound && <RoundTimer />}
                     </GoldenBallsGameInfoWrapper>
                     {userShownBallsToComponentsMapping[3] || (
                         <GoldenBallsPlayerCollectionScaffold />

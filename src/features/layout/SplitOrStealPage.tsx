@@ -1,6 +1,5 @@
 import { TEXT_COLOR_SILVER } from '../../config/Styles.ts';
 import { Choices } from '../../models/enums/Choices.ts';
-import { RoundTimer } from '../../components/shared/RoundTimer.tsx';
 import { useContext, useEffect, useRef, useState } from 'react';
 import {
     SplitOrStealChoiceButton,
@@ -14,6 +13,7 @@ import {
     GreenText,
     MoneyPotText,
     RedText,
+    CustomText,
     WhiteText,
 } from '../../components/shared/Text.tsx';
 import {
@@ -98,7 +98,8 @@ export const SplitOrStealPage = () => {
 
     useEffect(() => {
         if (socket) {
-            socket.removeListener();
+            socket.removeAllListeners('start-split-or-steal');
+            socket.removeAllListeners('end-game');
             socket.on('start-split-or-steal', onSocketStartSplitOrSteal);
             socket.on('end-game', onSocketEndGame);
         }
@@ -130,9 +131,9 @@ export const SplitOrStealPage = () => {
                     >
                         STEAL
                     </SplitOrStealChoiceButton>
-                    <RoundTimer $color={TEXT_COLOR_SILVER} $fontSize={72}>
+                    <CustomText $color={TEXT_COLOR_SILVER} $fontSize={72}>
                         {formatTimer(timerSeconds)}
-                    </RoundTimer>
+                    </CustomText>
                     <SplitOrStealChoiceButton
                         $choice={Choices.SPLIT}
                         $isFocused={choice === Choices.SPLIT}

@@ -21,10 +21,15 @@ import { Socket } from 'socket.io-client';
 import { SocketContext } from './context/SocketContext.tsx';
 import { GoldenBallsGamePage } from './features/layout/GoldenBallsGamePage.tsx';
 import { SplitOrStealPage } from './features/layout/SplitOrStealPage.tsx';
+import { PlayerStates } from './models/enums/PlayerStates.ts';
+import { Chat } from './features/chat/Chat.tsx';
 
 function App() {
     const { accessToken, loggedIn } = useSelector(
         (state: RootState) => state.currentUser,
+    );
+    const { playerState } = useSelector(
+        (state: RootState) => state.gameMetadata,
     );
 
     const [logInWithToken] = useLoginWithTokenMutation();
@@ -57,6 +62,14 @@ function App() {
         }
     }, [logInWithToken, loggedIn, navigate]);
 
+    const displayMessageChat = !(
+        playerState === PlayerStates.NOT_IN_GAME ||
+        playerState === PlayerStates.END_SPLIT_OR_STEAL ||
+        playerState === PlayerStates.WAITING_FOR_GOLDEN_BALLS ||
+        playerState === PlayerStates.IN_GAME ||
+        playerState === PlayerStates.SEARCHING_FOR_GAME
+    );
+
     return (
         <SocketContext.Provider
             value={{
@@ -65,6 +78,7 @@ function App() {
             }}
         >
             <Navbar />
+            {displayMessageChat && <Chat />}
             <MainSection>
                 <Routes>
                     <Route path="/" element={<HomePage />} />

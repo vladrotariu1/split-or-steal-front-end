@@ -9,6 +9,7 @@ export interface GameMetadataState {
     numberOfKillerBalls: number;
     playerState: PlayerStates;
     usersDetails: ChatUserDetailsResponse[];
+    timerSeconds: number;
 }
 
 const initialState: GameMetadataState = {
@@ -17,6 +18,7 @@ const initialState: GameMetadataState = {
     gamePot: null,
     playerState: PlayerStates.NOT_IN_GAME,
     usersDetails: [],
+    timerSeconds: null,
 };
 
 const gameMetadataSlice = createSlice({
@@ -26,6 +28,12 @@ const gameMetadataSlice = createSlice({
         resetGameMetadata() {
             return {
                 ...initialState,
+            };
+        },
+        addMessageToList(state, action: { payload: Message; type: any }) {
+            return {
+                ...state,
+                chatMessageList: [...state.chatMessageList, action.payload],
             };
         },
         setGamePot(state, action: { payload: number; type: any }) {
@@ -55,14 +63,22 @@ const gameMetadataSlice = createSlice({
                 usersDetails: action.payload,
             };
         },
+        setTimerSeconds(state, action: { payload: number; type: any }) {
+            return {
+                ...state,
+                timerSeconds: action.payload,
+            };
+        },
     },
 });
 
 export const {
+    addMessageToList,
     resetGameMetadata,
     setGamePot,
     setNumberOfKillerBalls,
     setPlayerState,
     setChatUsersDetails,
+    setTimerSeconds,
 } = gameMetadataSlice.actions;
 export const { reducer: gameMetadataReducer } = gameMetadataSlice;

@@ -2,15 +2,16 @@ import { useContext, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore.ts';
 import { StartNewGameButton } from '../../components/chat/ChatComponents.tsx';
-import { ChatWrapper } from '../../components/chat/ChatWrappers.tsx';
-import { Message } from '../../models/models/Message.ts';
 import { TEXT_COLOR_GREEN } from '../../config/Styles.ts';
 import { io } from 'socket.io-client';
 import { getCurrentServiceEndpoint } from '../../config/ServiceEndpointsMap.ts';
 import { PlayerStates } from '../../models/enums/PlayerStates.ts';
 
 import { CloseIcon, LoadingSpinner } from '../../components/shared/Icons.tsx';
-import { TopLeftPositionedWrapper } from '../../components/shared/Wrappers.tsx';
+import {
+    BlueMarineWrapper,
+    TopLeftPositionedWrapper,
+} from '../../components/shared/Wrappers.tsx';
 import { StartGameResponse } from '../../models/response/StartGameResponse.ts';
 import { SocketContext } from '../../context/SocketContext.tsx';
 import {
@@ -22,8 +23,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 export const NewGamePage = () => {
-    // const [message, setMessage] = useState('');
-    // const [messagesList, setMessagesList] = useState([] as Message[]);
     const [wrapperBoxShadow, setWrapperBoxShadow] = useState<string>(null);
 
     const { accessToken } = useSelector(
@@ -59,11 +58,6 @@ export const NewGamePage = () => {
         console.log('disconnected');
     };
 
-    const onSocketMessage = (message: Message) => {
-        console.log('new-message', message);
-        // setMessagesList((msgList) => [...msgList, message]);
-    };
-
     const onSocketStartGame = (startGameResponse: StartGameResponse) => {
         dispatch(setGamePot(startGameResponse.roomPot));
         dispatch(setChatUsersDetails(startGameResponse.usersDetails));
@@ -75,6 +69,10 @@ export const NewGamePage = () => {
 
     const onSocketPrepareGoldenBallsRound = () => {
         dispatch(setPlayerState(PlayerStates.PREPARING_GOLDEN_BALLS));
+        socket.removeAllListeners('connect');
+        socket.removeAllListeners('disconnect');
+        socket.removeAllListeners('prepare-golden-balls-round');
+        socket.removeAllListeners('start-game');
         navigate('/golden-balls-round');
     };
 
@@ -90,22 +88,6 @@ export const NewGamePage = () => {
         setWrapperBoxShadow(null);
     };
 
-    // const handleOnInputChange = (
-    //     event: React.ChangeEvent<HTMLInputElement>,
-    // ) => {
-    //     setMessage(event.target.value);
-    // };
-    //
-    // const handleOnKeyPress = async (
-    //     event: React.KeyboardEvent<HTMLInputElement>,
-    // ) => {
-    //     if (message && event.key === 'Enter') {
-    //         socket.emit('message', message);
-    //
-    //         setMessage('');
-    //     }
-    // };
-
     const handleSearchNewGameClick = () => {
         dispatch(setPlayerState(PlayerStates.SEARCHING_FOR_GAME));
         setWrapperBoxShadow(TEXT_COLOR_GREEN);
@@ -114,7 +96,6 @@ export const NewGamePage = () => {
 
         socket.on('connect', onSocketConnect);
         socket.on('disconnect', onSocketDisconnect);
-        socket.on('message', onSocketMessage);
         socket.on(
             'prepare-golden-balls-round',
             onSocketPrepareGoldenBallsRound,
@@ -122,11 +103,9 @@ export const NewGamePage = () => {
         socket.on('start-game', onSocketStartGame);
     };
 
-    // const textPlaceholder = `Type your message${!loggedIn ? ' (please login 🔒)' : ' ✏️'}`;
-
     return (
         <>
-            <ChatWrapper
+            <BlueMarineWrapper
                 $boxShadow={wrapperBoxShadow}
                 $startAnimation={
                     playerState === PlayerStates.SEARCHING_FOR_GAME
@@ -153,7 +132,7 @@ export const NewGamePage = () => {
                         />
                     </>
                 )}
-            </ChatWrapper>
+            </BlueMarineWrapper>
         </>
     );
 };
