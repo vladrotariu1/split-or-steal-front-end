@@ -11,6 +11,7 @@ import {
     gameMetadataReducer,
     GameMetadataState,
 } from './slices/gameMetadata.slice.ts';
+import { assistantApi } from './api/assistantApi.ts';
 
 export interface RootState {
     currentUser: CurrentUserState;
@@ -23,6 +24,7 @@ const store = configureStore({
         currentUser: currentUserReducer,
         infoPopup: infoPopupReducer,
         gameMetadata: gameMetadataReducer,
+        [assistantApi.reducerPath]: assistantApi.reducer,
         [authApi.reducerPath]: authApi.reducer,
         [userProfileApi.reducerPath]: userProfileApi.reducer,
         [paymentMethodsApi.reducerPath]: paymentMethodsApi.reducer,
@@ -30,6 +32,7 @@ const store = configureStore({
     middleware: (getDefaultMiddleware) =>
         // @ts-ignore
         getDefaultMiddleware()
+            .concat(assistantApi.middleware)
             .concat(authApi.middleware)
             .concat(userProfileApi.middleware)
             .concat(paymentMethodsApi.middleware),

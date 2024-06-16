@@ -4,6 +4,7 @@ export interface CurrentUserState {
     accessToken: string;
     balance: number;
     email: string;
+    isBot: boolean;
     loggedIn: boolean;
     userId: string;
     userName: string;
@@ -14,6 +15,7 @@ const initialState: CurrentUserState = {
     accessToken: '',
     balance: null,
     email: '',
+    isBot: false,
     loggedIn: false,
     userId: '',
     userName: '',
@@ -27,6 +29,12 @@ const currentUserSlice = createSlice({
         resetCurrentUser() {
             return {
                 ...initialState,
+            };
+        },
+        setIsUserBot(state, action: { payload: boolean; type: any }) {
+            return {
+                ...state,
+                isBot: action.payload,
             };
         },
         updateCurrentUser(
@@ -48,6 +56,10 @@ const currentUserSlice = createSlice({
     },
 });
 
-export const { resetCurrentUser, updateCurrentUser, updateUserBalance } =
-    currentUserSlice.actions;
+export const {
+    resetCurrentUser,
+    setIsUserBot,
+    updateCurrentUser,
+    updateUserBalance,
+} = currentUserSlice.actions;
 export const { reducer: currentUserReducer } = currentUserSlice;

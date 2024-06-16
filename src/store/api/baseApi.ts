@@ -21,3 +21,4 @@ export const baseApi = (reducerPath: string) =>
 export const authBaseApi = baseApi('auth');
 export const userProfileBaseApi = baseApi('user-profile');
 export const paymentMethodsBaseApi = baseApi('payment-methods');
+export const assistantBaseApi = baseApi('assistant');

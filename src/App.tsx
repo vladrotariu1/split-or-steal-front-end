@@ -11,7 +11,7 @@ import { CreateUserForm } from './features/authentication/CreateUserForm.tsx';
 import { PaymentMethods } from './features/payment-methods/PaymentMethods.tsx';
 import { LOCAL_STORAGE_ACCESS_TOKEN_KEY } from './config/Variables.ts';
 import { useLoginWithTokenMutation } from './store/api/authApi.ts';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NewGamePage } from './features/layout/NewGamePage.tsx';
 import { PaymentsReturnPage } from './features/layout/PaymentsReturnPage.tsx';
 import { AddCreditPage } from './features/layout/AddCreditPage.tsx';
@@ -23,9 +23,10 @@ import { GoldenBallsGamePage } from './features/layout/GoldenBallsGamePage.tsx';
 import { SplitOrStealPage } from './features/layout/SplitOrStealPage.tsx';
 import { PlayerStates } from './models/enums/PlayerStates.ts';
 import { Chat } from './features/chat/Chat.tsx';
+import { SetUserAsBot } from './features/layout/SetUserAsBot.tsx';
 
 function App() {
-    const { accessToken, loggedIn } = useSelector(
+    const { accessToken, loggedIn, isBot } = useSelector(
         (state: RootState) => state.currentUser,
     );
     const { playerState } = useSelector(
@@ -70,6 +71,12 @@ function App() {
         playerState === PlayerStates.SEARCHING_FOR_GAME
     );
 
+    const handleOnMainSectionClick = (e: React.MouseEvent) => {
+        console.log('clicked in main section');
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
     return (
         <SocketContext.Provider
             value={{
@@ -79,9 +86,17 @@ function App() {
         >
             <Navbar />
             {displayMessageChat && <Chat />}
-            <MainSection>
+            <MainSection
+                onClick={handleOnMainSectionClick}
+                $disableMouseEvents={
+                    isBot &&
+                    playerState !== PlayerStates.NOT_IN_GAME &&
+                    playerState !== PlayerStates.SEARCHING_FOR_GAME
+                }
+            >
                 <Routes>
                     <Route path="/" element={<HomePage />} />
+                    <Route path="set-user-as-bot" element={<SetUserAsBot />} />
                     <Route path="login" element={<LoginForm />} />
                     <Route
                         path="create-user"

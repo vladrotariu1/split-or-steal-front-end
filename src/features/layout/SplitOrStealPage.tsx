@@ -32,6 +32,7 @@ import { PlayerStates } from '../../models/enums/PlayerStates.ts';
 import { formatTimer } from '../../utils/Format.ts';
 import { LoadingSpinner } from '../../components/shared/Icons.tsx';
 import { SocketContext } from '../../context/SocketContext.tsx';
+import { useMessageToConvinceUserToSplitMutation } from '../../store/api/assistantApi.ts';
 
 export const SplitOrStealPage = () => {
     const [choice, setChoice] = useState<Choices>(null);
@@ -42,7 +43,9 @@ export const SplitOrStealPage = () => {
     const { playerState, gamePot } = useSelector(
         (state: RootState) => state.gameMetadata,
     );
-    const { userId } = useSelector((state: RootState) => state.currentUser);
+    const { userId, isBot } = useSelector(
+        (state: RootState) => state.currentUser,
+    );
 
     // eslint-disable-next-line no-undef
     const intervalRef = useRef<NodeJS.Timeout>(null);
@@ -50,6 +53,9 @@ export const SplitOrStealPage = () => {
     const dispatch = useDispatch();
 
     const { socket } = useContext(SocketContext);
+
+    const [requestMessageToConvinceUserToSplit] =
+        useMessageToConvinceUserToSplitMutation();
 
     const handleOnChooseSplit = () => {
         socket.emit('split-or-steal-decision', Choices.SPLIT);
@@ -95,6 +101,13 @@ export const SplitOrStealPage = () => {
 
         dispatch(setPlayerState(PlayerStates.NOT_IN_GAME));
     };
+
+    useEffect(() => {
+        if (isBot) {
+            console.log('requesting message to write in chat');
+            requestMessageToConvinceUserToSplit();
+        }
+    }, [isBot, requestMessageToConvinceUserToSplit]);
 
     useEffect(() => {
         if (socket) {

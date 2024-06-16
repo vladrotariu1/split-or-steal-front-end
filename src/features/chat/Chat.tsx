@@ -23,7 +23,7 @@ export const Chat = () => {
     const [message, setMessage] = useState('');
     const [isChatMinimised, setIsChatMinimised] = useState(true);
 
-    const { userId, loggedIn } = useSelector(
+    const { userId, loggedIn, isBot, email, userPhotoUrl } = useSelector(
         (state: RootState) => state.currentUser,
     );
     const { chatMessageList } = useSelector(
@@ -41,19 +41,36 @@ export const Chat = () => {
         dispatch(addMessageToList(message));
     };
 
+    const onSocketOnMessageToConvinceOpponentToSplit = (message: string) => {
+        emitMessage(message);
+        const assistantMessage: Message = {
+            id: crypto.randomUUID(),
+            userId,
+            userName: email,
+            userProfilePictureUrl: userPhotoUrl,
+            text: message,
+        };
+
+        dispatch(addMessageToList(assistantMessage));
+    };
+
     const handleOnInputChange = (
         event: React.ChangeEvent<HTMLInputElement>,
     ) => {
         setMessage(event.target.value);
     };
 
+    const emitMessage = (message: string) => {
+        socket.emit('message', message);
+
+        setMessage('');
+    };
+
     const handleOnKeyPress = async (
         event: React.KeyboardEvent<HTMLInputElement>,
     ) => {
         if (message && event.key === 'Enter') {
-            socket.emit('message', message);
-
-            setMessage('');
+            emitMessage(message);
         }
     };
 
@@ -68,7 +85,15 @@ export const Chat = () => {
     useEffect(() => {
         if (socket) {
             socket.removeAllListeners('message');
+            socket.removeAllListeners('message-to-convince-opponent-to-split');
+
             socket.on('message', onSocketMessage);
+            if (isBot) {
+                socket.on(
+                    'message-to-convince-opponent-to-split',
+                    onSocketOnMessageToConvinceOpponentToSplit,
+                );
+            }
         }
     }, [socket]);
 

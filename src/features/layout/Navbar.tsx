@@ -87,7 +87,7 @@ export const Navbar = () => {
     };
 
     return (
-        <NavbarWrapper>
+        <NavbarWrapper $disableMouseEvents={false}>
             <NavbarRightContainer>
                 <NavbarRightContainerElement onClick={handleClickHome}>
                     Home

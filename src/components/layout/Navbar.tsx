@@ -4,7 +4,9 @@ import {
     TEXT_COLOR_SILVER,
 } from '../../config/Styles.ts';
 
-export const NavbarWrapper = styled.nav`
+export const NavbarWrapper = styled.nav<{ $disableMouseEvents: boolean }>`
+    pointer-events: ${(props) => (props.$disableMouseEvents ? 'none' : '')};
+
     background-color: ${MAIN_COLOR_BLUE_MARINE};
     color: ${TEXT_COLOR_SILVER};
     display: flex;

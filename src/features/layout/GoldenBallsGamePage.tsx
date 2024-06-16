@@ -9,10 +9,18 @@ import { LoadingSpinner } from '../../components/shared/Icons.tsx';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/configureStore.ts';
 import { PlayerStates } from '../../models/enums/PlayerStates.ts';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { SocketContext } from '../../context/SocketContext.tsx';
 import { GoldenBallsRoundStartResponse } from '../../models/response/GoldenBallsRoundStartResponse.ts';
 import {
+    addMessageToList,
     setGamePot,
     setNumberOfKillerBalls,
     setPlayerState,
@@ -20,7 +28,10 @@ import {
 } from '../../store/slices/gameMetadata.slice.ts';
 import { GoldenBall } from '../../models/models/GoldenBall.ts';
 import { useNavigate } from 'react-router-dom';
-import { DEFAULT_USER_IMAGE_URL } from '../../config/Variables.ts';
+import {
+    AI_ASSISTANT_IMAGE_URL,
+    DEFAULT_USER_IMAGE_URL,
+} from '../../config/Variables.ts';
 import { GoldenBallsPlayerCollectionScaffold } from '../golden-balls/GoldenBallsPlayerCollectionScaffold.tsx';
 import { GoldenBallsAssignment } from '../../models/models/GoldenBallsAssignment.ts';
 import { GoldenBallsRoundEndResponse } from '../../models/response/GoldenBallsRoundEndResponse.ts';
@@ -35,6 +46,12 @@ import {
     WhiteText,
 } from '../../components/shared/Text.tsx';
 import { RoundTimer } from '../shared/RoundTimer.tsx';
+import {
+    useGoldenBallsDeclarationAdviceMutation,
+    useUserToKickAdviceMutation,
+} from '../../store/api/assistantApi.ts';
+import { AssistantAdviceStatus } from '../../models/enums/AssistantAdviceStatus.ts';
+import { Message } from '../../models/models/Message.ts';
 
 const getUserShownBalls = (
     userId: string,
@@ -74,6 +91,8 @@ export const GoldenBallsGamePage = () => {
         useState(0);
     const [kickedUsers, setKickedUsers] = useState<string[]>([]);
     const [kickedUser, setKickedUser] = useState<string>(null);
+    const [assistantAdviceStatus, setAssistantAdviceStatus] =
+        useState<AssistantAdviceStatus>(AssistantAdviceStatus.NO_ADVICE_NEEDED);
 
     // eslint-disable-next-line no-undef
     const intervalRef = useRef<NodeJS.Timeout>(null);
@@ -85,6 +104,7 @@ export const GoldenBallsGamePage = () => {
         userId: currentUserId,
         userName: currentUserName,
         userPhotoUrl: currentUserPhotoUrl,
+        isBot,
     } = useSelector((state: RootState) => state.currentUser);
 
     const dispatch = useDispatch();
@@ -93,34 +113,103 @@ export const GoldenBallsGamePage = () => {
 
     const navigate = useNavigate();
 
+    const [requestUserToKick] = useUserToKickAdviceMutation();
+    const [requestGoldenBalldDeclarationAdvice] =
+        useGoldenBallsDeclarationAdviceMutation();
+
+    const userToKickAdviceShownBallsDto = useMemo(
+        () =>
+            shownBalls
+                ?.filter(
+                    (goldenBalls) => goldenBalls.playerId !== currentUserId,
+                )
+                ?.map((goldenBalls) => ({
+                    playerId: goldenBalls.playerId,
+                    shownGoldenBalls: goldenBalls?.shownBalls?.map(
+                        (balls) => balls.value,
+                    ),
+                })),
+        [currentUserId, shownBalls],
+    );
+
+    useEffect(() => {
+        if (
+            isBot &&
+            playerState === PlayerStates.IN_GOLDEN_BALLS_ROUND &&
+            userToKickAdviceShownBallsDto &&
+            gamePot
+        ) {
+            switch (assistantAdviceStatus) {
+                case AssistantAdviceStatus.WAITING_FOR_GOLDEN_BALLS_DECLARATION_ADVICE:
+                    console.log('requesting golden balls to display advice');
+                    requestGoldenBalldDeclarationAdvice({
+                        roomPot: gamePot,
+                        displayedBallsValues: getUserShownBalls(
+                            currentUserId,
+                            shownBalls,
+                        ).shownBalls.map((ball) => ball.value),
+                        hiddenBallsValues: getUserHiddenBalls(
+                            currentUserId,
+                            shownBalls,
+                            userGoldenBalls,
+                        ).map((ball) => ball.value),
+                    });
+                    break;
+                case AssistantAdviceStatus.WAITING_FOR_USER_TO_KICK_ADVICE:
+                    console.log('requesting user to kick advice');
+                    requestUserToKick({
+                        roomPot: gamePot,
+                        goldenBallsAssignments: userToKickAdviceShownBallsDto,
+                    });
+                    break;
+            }
+        }
+    }, [
+        assistantAdviceStatus,
+        gamePot,
+        isBot,
+        // playerState,
+        requestUserToKick,
+        userToKickAdviceShownBallsDto,
+    ]);
+
     const onSocketStartGoldenBallsRound = useCallback(
         (goldenBallsRoundStartResponse: GoldenBallsRoundStartResponse) => {
             const roundTimerDuration = Math.floor(
                 goldenBallsRoundStartResponse.roundDuration / 1000,
             );
 
-            dispatch(setPlayerState(PlayerStates.IN_GOLDEN_BALLS_ROUND));
-            dispatch(setTimerSeconds(roundTimerDuration));
-
             setUserGoldenBalls(
                 goldenBallsRoundStartResponse.userGoldenBallsAssignment,
             );
             setShownBalls(goldenBallsRoundStartResponse.shownBallsAssignments);
             setPlayersGoldenBalls(null);
-            setTimerSeconds(roundTimerDuration);
             setDisableGoldenBallsDeclaration(false);
             if (kickedUser) {
                 setKickedUsers((kickedUsers) => [...kickedUsers, kickedUser]);
             }
 
+            if (isBot) {
+                setAssistantAdviceStatus(
+                    AssistantAdviceStatus.WAITING_FOR_GOLDEN_BALLS_DECLARATION_ADVICE,
+                );
+            }
+
+            dispatch(setTimerSeconds(roundTimerDuration));
+            dispatch(setPlayerState(PlayerStates.IN_GOLDEN_BALLS_ROUND));
+            dispatch(setTimerSeconds(roundTimerDuration));
+
             console.log('start-round!!!!', goldenBallsRoundStartResponse);
         },
-        [dispatch, kickedUser],
+        [dispatch, isBot, kickedUser],
     );
 
     const onSocketPrepareGoldenBallsRound = useCallback(() => {
         console.log('preparing');
         dispatch(setPlayerState(PlayerStates.PREPARING_GOLDEN_BALLS));
+        setAssistantAdviceStatus(
+            AssistantAdviceStatus.WAITING_FOR_USER_TO_KICK_ADVICE,
+        );
     }, [dispatch]);
 
     const onSocketEndGoldenBallsRound = useCallback(
@@ -198,6 +287,46 @@ export const GoldenBallsGamePage = () => {
         [dispatch, navigate],
     );
 
+    const onSocketKickUserAdvice = (response) => {
+        console.log('Kick advice response: ', response);
+        handleKickUserCallback(response?.userId)();
+
+        const assistantMessage: Message = {
+            id: crypto.randomUUID(),
+            userId: 'ai-assistant',
+            userName: 'AI Game Assistant',
+            userProfilePictureUrl: AI_ASSISTANT_IMAGE_URL,
+            text: response?.reason,
+        };
+
+        dispatch(addMessageToList(assistantMessage));
+
+        console.log('Kick reason: ', response?.reason);
+    };
+
+    const onSocketGoldenBallsToDisplayAdvice = (response: {
+        inDanger: boolean;
+        lieChoiceReason: string;
+        shouldLie: boolean;
+        values: number[];
+    }) => {
+        console.log('Balls to display advice', response);
+        handleGoldenBallsDeclaration(response.values);
+        setAssistantAdviceStatus(
+            AssistantAdviceStatus.WAITING_FOR_USER_TO_KICK_ADVICE,
+        );
+
+        const assistantMessage: Message = {
+            id: crypto.randomUUID(),
+            userId: 'ai-assistant',
+            userName: 'AI Game Assistant',
+            userProfilePictureUrl: AI_ASSISTANT_IMAGE_URL,
+            text: response.lieChoiceReason,
+        };
+
+        dispatch(addMessageToList(assistantMessage));
+    };
+
     useEffect(() => {
         if (socket) {
             socket.removeAllListeners('start-golden-balls-round');
@@ -205,6 +334,9 @@ export const GoldenBallsGamePage = () => {
             socket.removeAllListeners('end-golden-balls-round');
             socket.removeAllListeners('user-golden-balls-declaration');
             socket.removeAllListeners('prepare-split-or-steal');
+            socket.removeAllListeners('user-to-kick-advice');
+            socket.removeAllListeners('golden-balls-declaration-advice');
+
             socket.on(
                 'start-golden-balls-round',
                 onSocketStartGoldenBallsRound,
@@ -219,8 +351,17 @@ export const GoldenBallsGamePage = () => {
                 onUserGoldenBallsDeclaration,
             );
             socket.on('prepare-split-or-steal', onSocketPrepareSplitOrSteal);
+
+            if (isBot) {
+                socket.on('user-to-kick-advice', onSocketKickUserAdvice);
+                socket.on(
+                    'golden-balls-declaration-advice',
+                    onSocketGoldenBallsToDisplayAdvice,
+                );
+            }
         }
     }, [
+        isBot,
         onSocketEndGoldenBallsRound,
         onSocketPrepareGoldenBallsRound,
         onSocketPrepareSplitOrSteal,
